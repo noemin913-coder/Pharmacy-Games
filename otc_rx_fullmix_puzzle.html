@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>OTC vs RX Full Mix Puzzle</title>
+<style>
+ body { font-family: Arial; max-width: 1000px; margin: auto; text-align: center; }
+ #gameSection { display: none; }
+ .grid {
+   display: grid;
+   grid-template-columns: repeat(4, 1fr);
+   gap: 12px;
+   margin-top: 20px;
+ }
+ .tile {
+   background: #ececec;
+   padding: 16px;
+   border-radius: 10px;
+   border: 2px solid #666;
+   min-height: 90px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   cursor: pointer;
+   font-weight: bold;
+   transition: .3s;
+ }
+ .solved {
+   background: #d4ffd4 !important;
+   border-color: green !important;
+   color: #1a4d1a;
+   opacity: 0.7;
+   cursor: default;
+ }
+ #startBtn {
+   padding: 12px 25px;
+   font-size: 18px;
+   background: #4CAF50;
+   color: white;
+   border: none;
+   border-radius: 8px;
+   cursor: pointer;
+   margin-top: 40px;
+ }
+</style>
+</head>
+
+<body>
+
+<h2>OTC vs RX – Full Mix Puzzle</h2>
+<button id="startBtn" onclick="startGame()">Start Game</button>
+
+<div id="gameSection">
+<p>Click each tile to reveal its classification or guidance.</p>
+
+<div class="grid">
+ <div class="tile" onclick="solve(this,
+ 'OTC: Ibuprofen – NSAID. Warning: GI bleeding, avoid in kidney disease.')">Ibuprofen</div>
+
+ <div class="tile" onclick="solve(this,
+ 'OTC: Acetaminophen – Max 4000 mg/day. Liver toxicity warning.')">Acetaminophen</div>
+
+ <div class="tile" onclick="solve(this,
+ 'OTC: Loratadine – Non-drowsy allergy relief.')">Loratadine</div>
+
+ <div class="tile" onclick="solve(this,
+ 'OTC: Dextromethorphan – Cough suppressant. Abuse potential in teens.')">Dextromethorphan</div>
+
+ <div class="tile" onclick="solve(this,
+ 'OTC: Loperamide – For diarrhea. Do NOT use with bloody stool/fever.')">Loperamide</div>
+
+ <div class="tile" onclick="solve(this,
+ 'OTC: Famotidine – H2 blocker for heartburn.')">Famotidine</div>
+
+ <div class="tile" onclick="solve(this,
+ 'RX: Atorvastatin – Prescription cholesterol med.')">Atorvastatin</div>
+
+ <div class="tile" onclick="solve(this,
+ 'RX: Lisinopril – BP medication. Requires monitoring.')">Lisinopril</div>
+
+ <div class="tile" onclick="solve(this,
+ 'RX: Fluoxetine – Antidepressant. Prescription only.')">Fluoxetine</div>
+
+ <div class="tile" onclick="solve(this,
+ 'RX: Azithromycin – Antibiotic. NOT OTC.')">Azithromycin</div>
+
+ <div class="tile" onclick="solve(this,
+ 'RX: Insulin – Always prescription; high alert med.')">Insulin</div>
+
+ <div class="tile" onclick="solve(this,
+ 'Behind the Counter: Pseudoephedrine – ID required, sales limits apply.')">Pseudoephedrine</div>
+
+ <div class="tile" onclick="solve(this,
+ 'Behind the Counter (pharmacist discretion): Plan B – Age rules changed; available without ID, but kept behind counter in some pharmacies.')">Plan B</div>
+
+ <div class="tile" onclick="solve(this,
+ 'Condition: Heartburn – Recommend antacids or H2 blockers; refer for chronic symptoms.')">Heartburn</div>
+
+ <div class="tile" onclick="solve(this,
+ 'Condition: Allergies – OTC antihistamines first-line.')">Seasonal Allergies</div>
+
+ <div class="tile" onclick="solve(this,
+ 'Condition: Pain/Fever – Use APAP or NSAIDs unless contraindicated.')">Pain / Fever</div>
+
+ <div class="tile" onclick="solve(this,
+ 'Condition: Diarrhea – Loperamide unless red-flag symptoms present.')">Acute Diarrhea</div>
+
+ <div class="tile" onclick="solve(this,
+ 'Condition: Cough – Dextromethorphan or expectorants; refer for productive fever cough.')">Cough</div>
+
+ <div class="tile" onclick="solve(this,
+ 'Safety: Age restriction – Avoid cough/cold OTCs in children under 6.')">Pediatric OTC Warning</div>
+
+ <div class="tile" onclick="solve(this,
+ 'Safety: Refer to pharmacist – Symptoms >14 days, bloody stool, chest pain, SOB.')">When NOT to recommend OTC</div>
+</div>
+
+</div>
+
+<script>
+function startGame() {
+ document.getElementById('startBtn').style.display = 'none';
+ document.getElementById('gameSection').style.display = 'block';
+}
+
+function solve(tile, text) {
+ if (tile.classList.contains('solved')) return;
+ tile.innerHTML = text;
+ tile.classList.add('solved');
+}
+</script>
+
+</body>
+</html>
