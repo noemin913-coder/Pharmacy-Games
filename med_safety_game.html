@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Medication Safety Matching Game</title>
+<style>
+    body { font-family: Arial; max-width: 900px; margin: auto; text-align: center; }
+    #gameSection { display: none; }
+    .container { display: flex; gap: 40px; margin-top: 20px; }
+    .column { width: 45%; }
+    .item {
+        padding: 10px;
+        margin: 6px 0;
+        border: 2px solid #444;
+        border-radius: 6px;
+        cursor: pointer;
+        background: #f7f7f7;
+        text-align: left;
+    }
+    .feedback {
+        font-size: 14px;
+        margin-top: 4px;
+        display: none;
+    }
+    .correct { background: #b5ffb2 !important; border-color: green !important; }
+    .wrong { background: #ffb3b3 !important; border-color: red !important; }
+    #startBtn {
+        padding: 12px 25px;
+        font-size: 18px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 40px;
+    }
+</style>
+</head>
+
+<body>
+
+<h2>Medication Safety – Matching Game</h2>
+<button id="startBtn" onclick="startGame()">Start Game</button>
+
+<div id="gameSection">
+    <p>Click an item on the left, then the correct match on the right.</p>
+
+    <div class="container">
+
+        <div class="column" id="col1">
+            <div class="item" data-match="A">1. NDC Number</div>
+            <div class="item" data-match="D">2. Auxiliary Label</div>
+            <div class="item" data-match="H">3. Lot Number</div>
+            <div class="item" data-match="E">4. Beyond-Use Date (BUD)</div>
+            <div class="item" data-match="C">5. REMS</div>
+            <div class="item" data-match="F">6. High-Alert Medication</div>
+            <div class="item" data-match="B">7. Tall-Man Lettering</div>
+            <div class="item" data-match="G">8. FDA Recall Class I</div>
+        </div>
+
+        <div class="column" id="col2">
+            <div class="item" data-id="A">A. Manufacturer/product/package code</div>
+            <div class="item" data-id="B">B. Prevent LASA errors</div>
+            <div class="item" data-id="C">C. Safety program for high-risk drugs</div>
+            <div class="item" data-id="D">D. Warning labels like “Shake Well”</div>
+            <div class="item" data-id="E">E. Assigned after manipulation</div>
+            <div class="item" data-id="F">F. High harm risk (e.g., insulin)</div>
+            <div class="item" data-id="G">G. Can cause serious harm or death</div>
+            <div class="item" data-id="H">H. Identifies batch for recalls</div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+let selected = null;
+
+function startGame() {
+    document.getElementById("startBtn").style.display = "none";
+    document.getElementById("gameSection").style.display = "block";
+}
+
+function showFeedback(element, message, correct) {
+    let fb = element.querySelector(".feedback");
+    if (!fb) {
+        fb = document.createElement("div");
+        fb.className = "feedback";
+        element.appendChild(fb);
+    }
+    fb.innerText = message;
+    fb.style.color = correct ? "green" : "red";
+    fb.style.display = "block";
+    if (correct) {
+        setTimeout(() => { fb.style.display = "none"; }, 1500);
+    }
+}
+
+document.querySelectorAll('.item').forEach(item => {
+    item.addEventListener('click', function() {
+        if (!selected && this.parentNode.id === "col1") {
+            selected = this;
+            this.style.borderColor = "blue";
+            return;
+        }
+        if (selected && this.parentNode.id === "col2") {
+            if (this.dataset.id === selected.dataset.match) {
+                this.classList.add('correct');
+                selected.classList.add('correct');
+                showFeedback(this, "Correct!", true);
+                showFeedback(selected, "Correct!", true);
+            } else {
+                this.classList.add('wrong');
+                selected.classList.add('wrong');
+                showFeedback(this, "Incorrect — Try again.", false);
+                showFeedback(selected, "Incorrect — Try again.", false);
+                setTimeout(() => {
+                    this.classList.remove('wrong');
+                    selected.classList.remove('wrong');
+                }, 900);
+            }
+            selected.style.borderColor = "#444";
+            selected = null;
+        }
+    });
+});
+</script>
+
+</body>
+</html>
