@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Inventory & Storage Scenario Puzzle</title>
+<style>
+    body { font-family: Arial; max-width: 900px; margin: auto; text-align: center; }
+    #gameSection { display: none; }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 25px;
+    }
+    .tile {
+        background: #ececec;
+        padding: 20px;
+        border-radius: 10px;
+        border: 2px solid #666;
+        cursor: pointer;
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    .solved {
+        background: #c6ffc6 !important;
+        border-color: green !important;
+        color: #1a4d1a;
+        font-weight: normal;
+        cursor: default;
+        opacity: 0.65;
+    }
+    #startBtn {
+        padding: 12px 25px;
+        font-size: 18px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 40px;
+    }
+</style>
+</head>
+
+<body>
+
+<h2>Inventory & Storage Scenario Puzzle</h2>
+<button id="startBtn" onclick="startGame()">Start Game</button>
+
+<div id="gameSection">
+    <p>Click each tile to reveal the correct action. Tiles will lock when solved.</p>
+
+    <div class="grid">
+        <div class="tile" onclick="solve(this, 'Place vaccine in QUARANTINE and notify pharmacist — warm vaccines cannot be used. Document incident.')">Warm vaccine delivery</div>
+        <div class="tile" onclick="solve(this, 'Discard per policy; refrigerated meds left out overnight are unsafe. Record in temperature log.')">Refrigerated item left out overnight</div>
+        <div class="tile" onclick="solve(this, 'Move to freezer; freezer-only meds must never be stored in fridge. Check temperature logs.')">Freezer-only med in refrigerator</div>
+        <div class="tile" onclick="solve(this, 'Relocate to light-protected container; document if exposed. Light-sensitive meds lose potency.')">Light-sensitive med stored incorrectly</div>
+
+        <div class="tile" onclick="solve(this, 'Pull from shelf immediately; wrong NDC = potential mix-up. Verify correct product and notify pharmacist.')">Wrong NDC on shelf</div>
+        <div class="tile" onclick="solve(this, 'Quarantine mismatched lot; check DSCSA pedigree and notify pharmacist.')">Wrong lot number found</div>
+        <div class="tile" onclick="solve(this, 'Remove expired drug; log it and place in quarantine for destruction.')">Expired medication</div>
+        <div class="tile" onclick="solve(this, 'Recount and document; partial bottle must match perpetual inventory records.')">Partial bottle count issue</div>
+
+        <div class="tile" onclick="solve(this, 'Notify pharmacist immediately; C-II discrepancies must be investigated and documented ASAP.')">C-II inventory discrepancy</div>
+        <div class="tile" onclick="solve(this, 'Hold shipment; contact wholesaler for corrected packing slip and verify quantities.')">Missing packing slip</div>
+
+        <div class="tile" onclick="solve(this, 'Handle with gloves and place in hazardous waste; broken vials can contain dangerous drugs.')">Broken vial leaking</div>
+        <div class="tile" onclick="solve(this, 'Store in USP <800> compliant area; hazardous drugs require designated containment storage.')">Hazardous drug storage</div>
+        <div class="tile" onclick="solve(this, 'Move to flammable storage cabinet; alcohol-based or volatile chemicals must be secured.')">Flammable item stored wrong</div>
+        <div class="tile" onclick="solve(this, 'Place in proper sharps container; misplacement is a safety and OSHA violation.')">Sharps in wrong bin</div>
+
+        <div class="tile" onclick="solve(this, 'Pull product; check recall class, quarantine item, follow manufacturer instructions.')">Recalled medication found</div>
+        <div class="tile" onclick="solve(this, 'Fill in missing data; temperature logs must be complete for regulatory compliance.')">Missing temperature logs</div>
+    </div>
+</div>
+
+<script>
+function startGame() {
+    document.getElementById("startBtn").style.display = "none";
+    document.getElementById("gameSection").style.display = "block";
+}
+
+function solve(tile, message) {
+    if (tile.classList.contains("solved")) return;
+
+    tile.innerHTML = message;
+    tile.classList.add("solved");
+}
+</script>
+
+</body>
+</html>
