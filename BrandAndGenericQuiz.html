@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Brand and Generic Quiz - Hybrid Pharmacy Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body { font-family: Arial, sans-serif; background: #e8f0fe; margin: 0; padding: 20px; }
+    #game-box { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px #bbb; }
+    h1 { text-align: center; color: #1a73e8; }
+    .center { text-align: center; }
+    button { background: #1a73e8; color: white; border: none; padding: 12px 20px; font-size: 18px; border-radius: 8px; cursor: pointer; margin: 10px; }
+    button:hover { background: #1558b0; }
+    .option { padding: 12px; background: #eef3ff; border-radius: 6px; margin: 8px 0; border: 1px solid #ccc; cursor: pointer; }
+    .option:hover { background: #dce7ff; }
+    .drag-container { display: flex; justify-content: space-between; gap: 20px; }
+    .drag-item, .drop-zone { padding: 10px; background: #eef3ff; border: 1px solid #888; border-radius: 6px; margin: 10px 0; text-align: center; cursor: grab; }
+    .drop-zone { background: #f8faff; }
+</style>
+</head>
+<body>
+<div id="game-box">
+<h1>Brand and Generic Quiz</h1>
+<div id="screen"></div>
+<div class="center">
+    <button onclick="startGame()">Start</button>
+</div>
+</div>
+<script>
+const drugPairs = [
+    ["Lipitor","Atorvastatin"],["Zoloft","Sertraline"],["Lasix","Furosemide"],
+    ["Synthroid","Levothyroxine"],["Prozac","Fluoxetine"],["Norvasc","Amlodipine"],
+    ["Amoxil","Amoxicillin"],["Glucophage","Metformin"],["Prinivil","Lisinopril"],
+    ["Keflex","Cephalexin"],["Lopressor","Metoprolol"],["Crestor","Rosuvastatin"]
+];
+let score = 0; let round = 0;
+function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
+function startGame(){ score=0; round=0; nextRound(); }
+function nextRound(){ round++; if(round>5){ endGame(); return;} const modes=["mcq","drag","flash"]; const mode=modes[Math.floor(Math.random()*modes.length)];
+    if(mode==="mcq") return multipleChoiceRound();
+    if(mode==="drag") return dragDropRound();
+    if(mode==="flash") return flashcardRound();
+}
+function multipleChoiceRound(){
+    let pair=drugPairs[Math.floor(Math.random()*drugPairs.length)];
+    let brand=pair[0]; let correct=pair[1];
+    let choices=drugPairs.map(x=>x[1]); shuffle(choices); choices=choices.slice(0,3);
+    if(!choices.includes(correct)) choices[0]=correct; shuffle(choices);
+    document.getElementById("screen").innerHTML = `
+        <h2>Round ${round}: Multiple Choice</h2>
+        <p><strong>What is the generic for ${brand}?</strong></p>
+        ${choices.map(c=>`<div class="option" onclick="checkMCQ('${c}','${correct}')">${c}</div>`).join("")}`;
+}
+function checkMCQ(chosen,correct){ if(chosen===correct) score++; nextRound(); }
+function dragDropRound(){
+    let set=shuffle(drugPairs).slice(0,3);
+    let brands=set.map(x=>x[0]); let generics=set.map(x=>x[1]); shuffle(generics);
+    document.getElementById("screen").innerHTML = `
+        <h2>Round ${round}: Drag & Drop</h2>
+        <p>Drag the generic name onto the correct brand.</p>
+        <div class="drag-container">
+            <div style="width:45%;"><h3>Brands</h3>
+                ${brands.map(b=>`<div class="drop-zone" id="drop-${b}" ondragover="event.preventDefault()" ondrop="drop(event,'${b}')">${b}</div>`).join("")}
+            </div>
+            <div style="width:45%;"><h3>Generics</h3>
+                ${generics.map(g=>`<div class="drag-item" draggable="true" ondragstart="drag(event,'${g}')">${g}</div>`).join("")}
+            </div>
+        </div>`;
+}
+let draggedGeneric=""; function drag(ev,name){ draggedGeneric=name; }
+function drop(ev,brand){ let correct=drugPairs.find(x=>x[0]===brand)[1]; if(correct===draggedGeneric){ score++; } nextRound(); }
+function flashcardRound(){
+    let pair=drugPairs[Math.floor(Math.random()*drugPairs.length)];
+    let brand=pair[0]; let generic=pair[1];
+    document.getElementById("screen").innerHTML = `
+        <h2>Round ${round}: Flashcard</h2>
+        <p>Tap to reveal the generic.</p>
+        <div class="center">
+            <div id="card" style="margin:auto;width:200px;height:120px;display:flex;justify-content:center;align-items:center;background:#eef3ff;
+            border-radius:10px;font-size:22px;box-shadow:0 0 5px #888;cursor:pointer;" onclick="flipCard('${generic}')">${brand}</div>
+        </div>`;
+}
+function flipCard(g){ document.getElementById("card").innerHTML=g; score++; setTimeout(nextRound,1000); }
+function endGame(){
+    document.getElementById("screen").innerHTML=`
+        <h2>Quiz Complete!</h2>
+        <p>Your Score: <strong>${score} / 5</strong></p>
+        <div class="center"><button onclick="startGame()">Play Again</button></div>`;
+}
+</script>
+</body>
+</html>
