@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice Quiz: Suffixes and Terminology</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f0f2f5;
+         display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; padding:20px; }
+  .quiz-container { background:#fff; padding:30px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.1);
+                    max-width:600px; width:100%; text-align:center; }
+  h1 { color:#2c3e50; margin-bottom:10px; font-size:24px; }
+  .progress { color:#7f8c8d; font-size:14px; margin-bottom:20px; }
+  .question-text { font-size:18px; margin-bottom:25px; color:#34495e; font-weight:600; }
+  .options-grid { display:grid; gap:12px; }
+  button.option-btn { padding:15px; border:2px solid #e0e0e0; background:#fff; border-radius:8px; cursor:pointer;
+                      font-size:16px; transition:0.2s; text-align:left; color:#333; font-weight:500; }
+  button.option-btn:hover { background:#f8f9fa; border-color:#3498db; }
+  button.option-btn:disabled { cursor:default; }
+  .feedback { margin-top:20px; padding:15px; border-radius:8px; font-weight:bold; display:none; font-size:15px; }
+  .correct { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+  .incorrect { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+  .next-btn { margin-top:20px; padding:12px 30px; background:#3498db; color:white; border:none;
+              border-radius:25px; cursor:pointer; font-size:16px; font-weight:bold; display:none; }
+  .next-btn:hover { background:#2980b9; }
+  .progress-bar-container { width:100%; background:#e0e0e0; border-radius:10px; margin-bottom:20px; height:10px; }
+  .progress-bar-fill { height:100%; background:#2ecc71; width:0%; transition:0.3s ease; }
+</style>
+</head>
+
+<body>
+
+<button id="startBtn" onclick="document.getElementById('quizBox').style.display='block';this.style.display='none';" style="padding:15px 30px;font-size:20px;border:none;border-radius:10px;background:#3498db;color:white;cursor:pointer;">Start Quiz</button>
+<div class="quiz-container" id="quizBox" style="display:none;">
+  <h1>Pharmacy Matching Quiz</h1>
+  <div class="progress-bar-container"><div class="progress-bar-fill" id="progressBar"></div></div>
+  <div class="progress" id="progressText">Question 1 of 25</div>
+  <div class="question-text" id="qText">Loading...</div>
+  <div class="options-grid" id="optionsBox"></div>
+  <div class="feedback" id="feedbackBox"></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next Question</button>
+</div>
+
+<script>
+const quizData = [
+  { q: "Match the suffix '-prazole' to its drug class:", options:["ACE Inhibitor","Beta Blocker","Proton Pump Inhibitor (PPI)","Benzodiazepine"], a:2, r:"Correct! Drugs ending in '-prazole' are PPIs." },
+  { q: "Which abbreviation pair is matched CORRECTLY?", options:["hs = After meals","ac = Before meals","pc = At bedtime","bid = Three times daily"], a:1, r:"Correct! ac = before meals." },
+  { q: "Match the suffix '-sartan' to its drug class:", options:["ARB","Statin","Antibiotic","Antifungal"], a:0, r:"Correct! Losartan/valsartan are ARBs." },
+  { q: "Which measurement conversion is CORRECT?", options:["1 tsp = 15 mL","1 tbsp = 5 mL","1 oz = 30 mL","1 cup = 100 mL"], a:2, r:"Correct! 1 oz = 30 mL." },
+  { q: "Match OU to its meaning:", options:["Right Ear","Left Eye","Both Eyes","Both Ears"], a:2, r:"Correct! OU = both eyes." },
+  { q: "Match '-statin' to its use:", options:["BP","Cholesterol","Infection","Pain"], a:1, r:"Correct! Statins lower cholesterol." },
+  { q: "Which vitamin is matched correctly?", options:["B1 = Riboflavin","C = Ascorbic Acid","B12 = Folate","A = Tocopherol"], a:1, r:"Correct! Vitamin C = Ascorbic Acid." },
+  { q: "Match '-tidine' to its class:", options:["H2 Blocker","Beta Agonist","NSAID","Opioid"], a:0, r:"Correct! Famotidine is H2 blocker." },
+  { q: "Which element is correct?", options:["K = Calcium","Fe = Iron","Na = Nitrogen","Mg = Manganese"], a:1, r:"Correct! Fe = Iron." },
+  { q: "Hypertension means:", options:["High Sugar","High BP","Fast Heart Rate","Low Thyroid"], a:1, r:"Correct! High blood pressure." },
+  { q: "Match AD:", options:["Right Eye","Right Ear","Left Ear","As Directed"], a:1, r:"Correct! AD = right ear." },
+  { q: "Match '-cillin':", options:["Penicillin","Tetracycline","Antiviral","Steroid"], a:0, r:"Correct! Amoxicillin etc." },
+  { q: "Correct conversion:", options:["1 kg = 1000 mg","1 lb = 2.2 kg","1 kg = 2.2 lbs","1 g = 100 mg"], a:2, r:"Correct! 1 kg = 2.2 lbs." },
+  { q: "QID means:", options:["Once daily","Twice daily","3x daily","4x daily"], a:3, r:"Correct! QID = 4 times/day." },
+  { q: "Emesis means:", options:["Fever","Vomiting","Bleeding","Itching"], a:1, r:"Correct! Emesis = vomiting." },
+  { q: "Match '-vir':", options:["Antiviral","Antibiotic","Antifungal","Anticoagulant"], a:0, r:"Correct! Acyclovir etc." },
+  { q: "Correct brand/generic:", options:["Advil/Acetaminophen","Tylenol/Ibuprofen","Aleve/Naproxen","Motrin/Aspirin"], a:2, r:"Correct! Aleve is Naproxen." },
+  { q: "gtt means:", options:["Gram","Grain","Drop","Ointment"], a:2, r:"Correct! gtt = drops." },
+  { q: "Match '-pam'/'-lam':", options:["Barbiturate","Benzodiazepine","Opioid","Stimulant"], a:1, r:"Correct! Diazepam etc." },
+  { q: "Correct Roman numeral:", options:["V=10","X=5","L=50","C=1000"], a:2, r:"Correct! L = 50." },
+  { q: "Otic relates to:", options:["Eye","Ear","Nose","Skin"], a:1, r:"Correct! Otic = ear." },
+  { q: "PRN means:", options:["Immediately","As Needed","By Mouth","Rectally"], a:1, r:"Correct! PRN = as needed." },
+  { q: "'-asone' =:", options:["Corticosteroid","Beta Blocker","Antibiotic","Diuretic"], a:0, r:"Correct! Prednisone etc." },
+  { q: "Nephro relates to:", options:["Liver","Heart","Kidney","Stomach"], a:2, r:"Correct! Nephro = kidney." },
+  { q: "PO means:", options:["By Mouth","After Meals","Rectally","Injection"], a:0, r:"Correct! PO = per os." }
+];
+
+let currentIdx = 0, score = 0;
+
+function loadQ(){
+  document.getElementById("feedbackBox").style.display="none";
+  document.getElementById("nextBtn").style.display="none";
+  document.getElementById("optionsBox").innerHTML="";
+
+  if(currentIdx >= quizData.length){ return showResults(); }
+
+  const q = quizData[currentIdx];
+  document.getElementById("qText").innerText = q.q;
+  document.getElementById("progressText").innerText = "Question "+(currentIdx+1)+" of "+quizData.length;
+  document.getElementById("progressBar").style.width = (currentIdx/quizData.length)*100+"%";
+
+  q.options.forEach((opt,i)=>{
+    const btn=document.createElement("button");
+    btn.className="option-btn"; btn.innerText=opt;
+    btn.onclick=()=>check(i,btn);
+    document.getElementById("optionsBox").appendChild(btn);
+  });
+}
+
+function check(choice, btn){
+  const all=document.querySelectorAll(".option-btn");
+  all.forEach(b=>b.disabled=true);
+
+  const q=quizData[currentIdx];
+  const fb=document.getElementById("feedbackBox");
+  fb.style.display="block";
+
+  if(choice===q.a){
+    score++;
+    fb.className="feedback correct"; fb.innerHTML="✅ "+q.r;
+    btn.style.background="#d4edda";
+  } else {
+    fb.className="feedback incorrect"; fb.innerHTML="❌ "+q.r;
+    btn.style.background="#f8d7da";
+    all[q.a].style.background="#d4edda";
+  }
+
+  document.getElementById("nextBtn").style.display="inline-block";
+}
+
+function nextQuestion(){ currentIdx++; loadQ(); }
+
+function showResults(){
+  document.getElementById("progressBar").style.width="100%";
+  const percent=Math.round((score/quizData.length)*100);
+  document.getElementById("quizBox").innerHTML=
+    "<h1>Quiz Complete!</h1>"+
+    "<p>You scored <strong>"+score+" / "+quizData.length+"</strong> ("+percent+"%)</p>"+
+    "<button class='next-btn' style='display:inline-block' onclick='location.reload()'>Restart Quiz</button>";
+}
+
+loadQ();
+</script>
+
+</body>
+</html>
