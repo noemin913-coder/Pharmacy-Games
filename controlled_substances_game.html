@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Controlled Substances Matching Game</title>
+<style>
+    body { font-family: Arial; max-width: 900px; margin: auto; text-align: center; }
+    #gameSection { display: none; }
+    .container { display: flex; gap: 40px; margin-top: 20px; }
+    .column { width: 45%; }
+    .item {
+        padding: 10px;
+        margin: 6px 0;
+        border: 2px solid #444;
+        border-radius: 6px;
+        cursor: pointer;
+        background: #f7f7f7;
+        text-align: left;
+    }
+    .feedback {
+        font-size: 14px;
+        margin-top: 4px;
+        display: none;
+    }
+    .correct { background: #b5ffb2 !important; border-color: green !important; }
+    .wrong { background: #ffb3b3 !important; border-color: red !important; }
+    #startBtn {
+        padding: 12px 25px;
+        font-size: 18px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 40px;
+    }
+</style>
+</head>
+
+<body>
+
+<h2>Controlled Substances Matching Game</h2>
+<button id="startBtn" onclick="startGame()">Start Game</button>
+
+<div id="gameSection">
+    <p>Click a schedule/drug/rule, then its correct match.</p>
+
+    <div class="container">
+        <div class="column" id="col1">
+            <div class="item" data-match="A">1. Schedule I</div>
+            <div class="item" data-match="B">2. Schedule II</div>
+            <div class="item" data-match="C">3. Schedule III</div>
+            <div class="item" data-match="D">4. Schedule IV</div>
+            <div class="item" data-match="E">5. Schedule V</div>
+
+            <div class="item" data-match="F">6. LSD</div>
+            <div class="item" data-match="G">7. Heroin</div>
+            <div class="item" data-match="H">8. Oxycodone</div>
+            <div class="item" data-match="I">9. Adderall</div>
+            <div class="item" data-match="J">10. Hydromorphone</div>
+
+            <div class="item" data-match="K">11. Buprenorphine</div>
+            <div class="item" data-match="L">12. Ketamine</div>
+            <div class="item" data-match="M">13. Alprazolam</div>
+            <div class="item" data-match="N">14. Tramadol</div>
+            <div class="item" data-match="O">15. Pregabalin</div>
+
+            <div class="item" data-match="P">16. DEA Form 222</div>
+            <div class="item" data-match="Q">17. C-II No Refills</div>
+            <div class="item" data-match="R">18. C-III–V Refill Limits</div>
+            <div class="item" data-match="S">19. Partial Fills for C-II</div>
+            <div class="item" data-match="T">20. Transfer Rules</div>
+        </div>
+
+        <div class="column" id="col2">
+            <div class="item" data-id="A">A. No medical use, high abuse potential</div>
+            <div class="item" data-id="B">B. High abuse, accepted use; no refills</div>
+            <div class="item" data-id="C">C. Moderate abuse; 5 refills/6 months</div>
+            <div class="item" data-id="D">D. Low abuse; benzos, sleep meds</div>
+            <div class="item" data-id="E">E. Lowest abuse; antidiarrheals, cough meds</div>
+
+            <div class="item" data-id="F">F. Schedule I drug</div>
+            <div class="item" data-id="G">G. Schedule I opioid</div>
+            <div class="item" data-id="H">H. Strong C-II opioid</div>
+            <div class="item" data-id="I">I. C-II stimulant</div>
+            <div class="item" data-id="J">J. C-II opioid (Dilaudid)</div>
+
+            <div class="item" data-id="K">K. C-III opioid dependence treatment</div>
+            <div class="item" data-id="L">L. C-III anesthetic/analgesic</div>
+            <div class="item" data-id="M">M. C-IV benzo</div>
+            <div class="item" data-id="N">N. C-IV analgesic</div>
+            <div class="item" data-id="O">O. C-V seizure/pain med</div>
+
+            <div class="item" data-id="P">P. Required for ordering C-II meds</div>
+            <div class="item" data-id="Q">Q. Absolutely zero refills allowed</div>
+            <div class="item" data-id="R">R. Up to 5 refills in 6 months</div>
+            <div class="item" data-id="S">S. Allowed; remaining qty must be filled in 72 hrs</div>
+            <div class="item" data-id="T">T. C-II cannot transfer; C-III–V once</div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selected = null;
+
+function startGame() {
+    document.getElementById("startBtn").style.display = "none";
+    document.getElementById("gameSection").style.display = "block";
+}
+
+function showFeedback(element, message, correct) {
+    let fb = element.querySelector(".feedback");
+    if (!fb) {
+        fb = document.createElement("div");
+        fb.className = "feedback";
+        element.appendChild(fb);
+    }
+    fb.innerText = message;
+    fb.style.color = correct ? "green" : "red";
+    fb.style.display = "block";
+    if (correct) setTimeout(() => fb.style.display = "none", 1200);
+}
+
+document.querySelectorAll('.item').forEach(item => {
+    item.addEventListener('click', function() {
+
+        if (!selected && this.parentNode.id === "col1") {
+            selected = this;
+            this.style.borderColor = "blue";
+            return;
+        }
+
+        if (selected && this.parentNode.id === "col2") {
+            if (this.dataset.id === selected.dataset.match) {
+                this.classList.add('correct');
+                selected.classList.add('correct');
+                showFeedback(this, "Correct!", true);
+                showFeedback(selected, "Correct!", true);
+            } else {
+                this.classList.add('wrong');
+                selected.classList.add('wrong');
+                showFeedback(this, "Incorrect — try again.", false);
+                showFeedback(selected, "Incorrect — try again.", false);
+                setTimeout(() => {
+                    this.classList.remove('wrong');
+                    selected.classList.remove('wrong');
+                }, 900);
+            }
+            selected.style.borderColor = "#444";
+            selected = null;
+        }
+    });
+});
+</script>
+
+</body>
+</html>
