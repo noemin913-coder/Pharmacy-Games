@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Safety Violation Drag & Drop Game</title>
+<style>
+ body { font-family: Arial; max-width: 1000px; margin: auto; text-align: center; }
+ #gameSection { display: none; }
+ .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
+ .tile, .dropzone {
+   background: #f2f2f2;
+   padding: 15px;
+   border-radius: 8px;
+   border: 2px solid #666;
+   min-height: 70px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   cursor: pointer;
+   font-weight: bold;
+ }
+ .dropzone { background: #e8e8ff; }
+ .correct { background: #b5ffb2 !important; border-color: green !important; }
+ .wrong { background: #ffb3b3 !important; border-color: red !important; }
+ #startBtn {
+   padding: 12px 25px;
+   font-size: 18px;
+   background: #4CAF50;
+   color: white;
+   border: none;
+   border-radius: 8px;
+   cursor: pointer;
+   margin-top: 40px;
+ }
+</style>
+</head>
+<body>
+
+<h2>Safety Violation Drag & Drop Game</h2>
+<button id="startBtn" onclick="startGame()">Start Game</button>
+
+<div id="gameSection">
+<p>Drag each violation to the correct action or category.</p>
+
+<h3>Violations</h3>
+<div class="grid" id="violations">
+ <div class="tile" draggable="true" data-match="A">Not wearing gloves with chemo</div>
+ <div class="tile" draggable="true" data-match="B">PHI left on counter</div>
+ <div class="tile" draggable="true" data-match="C">Spill left unreported</div>
+ <div class="tile" draggable="true" data-match="D">Counting meds with wet hands</div>
+ <div class="tile" draggable="true" data-match="E">Flammable pads stored incorrectly</div>
+ <div class="tile" draggable="true" data-match="F">C-II keys left unattended</div>
+ <div class="tile" draggable="true" data-match="G">Eating in compounding area</div>
+ <div class="tile" draggable="true" data-match="H">Broken vial thrown in trash</div>
+ <div class="tile" draggable="true" data-match="I">Fridge temp out of range</div>
+ <div class="tile" draggable="true" data-match="J">Returned med placed back on shelf</div>
+ <div class="tile" draggable="true" data-match="K">Hazardous drug in regular stock</div>
+ <div class="tile" draggable="true" data-match="L">Mismatched NDC found</div>
+</div>
+
+<h3>Correct Actions / Categories</h3>
+<div class="grid" id="targets">
+ <div class="dropzone" data-id="A">Follow USP &lt;800&gt; Hazard Protocol</div>
+ <div class="dropzone" data-id="B">Secure PHI / HIPAA</div>
+ <div class="dropzone" data-id="C">Report Spill Immediately</div>
+ <div class="dropzone" data-id="D">Wash/Dry Hands + Replace Med</div>
+ <div class="dropzone" data-id="E">Store in Flammable Cabinet</div>
+ <div class="dropzone" data-id="F">Secure C-II Keys</div>
+ <div class="dropzone" data-id="G">No Food in Compounding Areas</div>
+ <div class="dropzone" data-id="H">Dispose in Hazard/Sharps Waste</div>
+ <div class="dropzone" data-id="I">Log Temps + Notify Pharmacist</div>
+ <div class="dropzone" data-id="J">Quarantine Returned Meds</div>
+ <div class="dropzone" data-id="K">Store Hazardous Drugs Separately</div>
+ <div class="dropzone" data-id="L">Verify DSCSA + Correct NDC</div>
+</div>
+
+</div>
+
+<script>
+let dragged = null;
+
+function startGame() {
+ document.getElementById("startBtn").style.display = "none";
+ document.getElementById("gameSection").style.display = "block";
+}
+
+document.querySelectorAll('.tile').forEach(tile => {
+ tile.addEventListener('dragstart', () => { dragged = tile; });
+});
+
+document.querySelectorAll('.dropzone').forEach(zone => {
+ zone.addEventListener('dragover', e => e.preventDefault());
+
+ zone.addEventListener('drop', function() {
+   if (!dragged) return;
+
+   if (dragged.dataset.match === this.dataset.id) {
+     this.classList.add("correct");
+     dragged.classList.add("correct");
+     this.innerHTML = "✔ " + this.innerHTML;
+     dragged.draggable = false;
+     dragged.style.opacity = "0.6";
+   } else {
+     this.classList.add("wrong");
+     setTimeout(() => this.classList.remove("wrong"), 700);
+   }
+ });
+});
+</script>
+
+</body>
+</html>
