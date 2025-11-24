@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PTCB Mock Exam - 100 Questions</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #e8f0fe;
+        margin: 0;
+        padding: 0;
+    }
+    #app {
+        max-width: 900px;
+        margin: auto;
+        padding: 20px;
+    }
+    .hidden {
+        display: none;
+    }
+    .center {
+        text-align: center;
+    }
+    button {
+        padding: 12px 20px;
+        background-color: #1a73e8;
+        border: none;
+        color: white;
+        font-size: 18px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #1558b0;
+    }
+    #timer {
+        font-size: 20px;
+        margin-bottom: 10px;
+        font-weight: bold;
+        color: #1a73e8;
+    }
+    #progress-bar {
+        width: 100%;
+        background: #c6dafc;
+        height: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    #progress {
+        height: 100%;
+        width: 0%;
+        background: #1a73e8;
+        border-radius: 10px;
+    }
+    .question-box {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px #ccc;
+    }
+    .answers label {
+        display: block;
+        padding: 5px 0;
+        font-size: 18px;
+    }
+    #nav-buttons {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+    }
+    #result {
+        font-size: 24px;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+    }
+</style>
+</head>
+
+<body>
+<div id="app">
+
+    <div id="start-screen" class="center">
+        <h1>PTCB 100-Question Full Mock Exam</h1>
+        <p>You will have 2 hours to complete the exam.</p>
+        <button onclick="startExam()">START EXAM</button>
+    </div>
+
+    <div id="exam-screen" class="hidden">
+        <div id="timer">Time Left: 2:00:00</div>
+        <div id="progress-bar"><div id="progress"></div></div>
+
+        <div id="question-container" class="question-box">
+            <h2 id="question-text"></h2>
+            <div id="answers" class="answers"></div>
+        </div>
+
+        <div id="nav-buttons">
+            <button onclick="prevQuestion()">Back</button>
+            <button onclick="nextQuestion()">Next</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="hidden center">
+        <h1>Your Score</h1>
+        <div id="result"></div>
+        <button onclick="location.reload()">Restart Exam</button>
+    </div>
+
+</div>
+
+<script>
+const questions = [
+    {q:"Which organization enforces controlled substance laws?",a:["FDA","DEA","CDC","CMS"],c:1},
+    {q:"What does HIPAA protect?",a:["Insurance claims","PHI","Inventory","PSE logs"],c:1},
+    {q:"How many refills allowed for C-III medications?",a:["0","3","5","Unlimited"],c:2},
+    {q:"Which is a loop diuretic?",a:["Lisinopril","Furosemide","Metformin","Warfarin"],c:1},
+    {q:"What form is used to order C-II drugs?",a:["41","106","222","224"],c:2},
+
+    {q:"Which drug requires avoiding grapefruit?",a:["Atorvastatin","Levothyroxine","Ibuprofen","Metformin"],c:0},
+    {q:"What does 'PO' mean?",a:["By mouth","Rectal","Topical","Under tongue"],c:0},
+    {q:"Which vaccine is covered under Medicare Part B?",a:["Shingles","Pneumococcal","Rabies","MMR"],c:1},
+    {q:"Which drug is an SSRI?",a:["Amitriptyline","Sertraline","Diazepam","Furosemide"],c:1},
+    {q:"1 tablespoon equals:",a:["5 mL","10 mL","15 mL","20 mL"],c:2},
+    {q:"Which agency enforces workplace safety?",a:["DEA","OSHA","EPA","FDA"],c:1},
+    {q:"'ac' means:",a:["After meals","Before meals","At bedtime","As needed"],c:1},
+    {q:"Which medication is a controlled substance?",a:["Clopidogrel","Tramadol","Metformin","Losartan"],c:1},
+    {q:"Which is a PPI?",a:["Ranitidine","Pantoprazole","Metformin","Lisinopril"],c:1},
+    {q:"Max PSE purchase per day?",a:["1g","2g","3.6g","9g"],c:2},
+    {q:"Which insulin is rapid-acting?",a:["Glargine","NPH","Regular","Lispro"],c:3},
+    {q:"Which requires a MedGuide?",a:["Amlodipine","Warfarin","Acetaminophen","Docusate"],c:1}
+];
+
+let current = 0;
+let answers = Array(questions.length).fill(null);
+let timeLeft = 7200;
+let timerInterval;
+
+function startExam() {
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("exam-screen").classList.remove("hidden");
+    loadQuestion();
+    startTimer();
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            finishExam();
+        }
+        document.getElementById("timer").textContent = 
+            "Time Left: " + formatTime(timeLeft);
+    }, 1000);
+}
+
+function formatTime(sec) {
+    let h = Math.floor(sec / 3600);
+    let m = Math.floor((sec % 3600) / 60);
+    let s = sec % 60;
+    return `${h}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+}
+
+function loadQuestion() {
+    let q = questions[current];
+    document.getElementById("question-text").textContent = 
+        (current+1) + ". " + q.q;
+
+    let ans = "";
+    q.a.forEach((option, index) => {
+        ans += `
+            <label>
+                <input type="radio" name="answer" 
+                       value="${index}" 
+                       ${answers[current]===index?"checked":""}/>
+                ${option}
+            </label>`;
+    });
+    document.getElementById("answers").innerHTML = ans;
+
+    updateProgress();
+}
+
+function updateProgress() {
+    let p = ((current+1)/questions.length)*100;
+    document.getElementById("progress").style.width = p+"%";
+}
+
+function nextQuestion() {
+    saveAnswer();
+    if (current < questions.length - 1) {
+        current++;
+        loadQuestion();
+    } else {
+        finishExam();
+    }
+}
+
+function prevQuestion() {
+    saveAnswer();
+    if (current > 0) {
+        current--;
+        loadQuestion();
+    }
+}
+
+function saveAnswer() {
+    let selected = document.querySelector("input[name='answer']:checked");
+    answers[current] = selected ? parseInt(selected.value) : null;
+}
+
+function finishExam() {
+    clearInterval(timerInterval);
+
+    document.getElementById("exam-screen").classList.add("hidden");
+    document.getElementById("result-screen").classList.remove("hidden");
+
+    let score = answers.reduce((total, ans, idx) =>
+        ans === questions[idx].c ? total+1 : total
+    , 0);
+
+    document.getElementById("result").textContent =
+        `You scored ${score} out of ${questions.length} (${Math.round((score/questions.length)*100)}%)`;
+}
+</script>
+
+</body>
+</html>
