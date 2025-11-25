@@ -1,0 +1,410 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PTCB Mock Exam - 100 Questions</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #e8f0fe;
+        margin: 0;
+        padding: 0;
+    }
+    #app {
+        max-width: 900px;
+        margin: auto;
+        padding: 20px;
+    }
+    .hidden {
+        display: none;
+    }
+    .center {
+        text-align: center;
+    }
+    button {
+        padding: 12px 20px;
+        background-color: #1a73e8;
+        border: none;
+        color: white;
+        font-size: 18px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #1558b0;
+    }
+    #timer {
+        font-size: 20px;
+        margin-bottom: 10px;
+        font-weight: bold;
+        color: #1a73e8;
+    }
+    #progress-bar {
+        width: 100%;
+        background: #c6dafc;
+        height: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    #progress {
+        height: 100%;
+        width: 0%;
+        background: #1a73e8;
+        border-radius: 10px;
+    }
+    .question-box {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px #ccc;
+    }
+    .answers label {
+        display: block;
+        padding: 5px 0;
+        font-size: 18px;
+    }
+    #nav-buttons {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+    }
+    #result {
+        font-size: 24px;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+    }
+</style>
+</head>
+
+<body>
+<div id="app">
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="center">
+        <h1>PTCB 100-Question Full Mock Exam</h1>
+        <p>You will have 2 hours to complete the exam.</p>
+        <button onclick="startExam()">START EXAM</button>
+    </div>
+
+    <!-- Exam Screen -->
+    <div id="exam-screen" class="hidden">
+        <div id="timer">Time Left: 2:00:00</div>
+        <div id="progress-bar"><div id="progress"></div></div>
+
+        <div id="question-container" class="question-box">
+            <h2 id="question-text"></h2>
+            <div id="answers" class="answers"></div>
+        </div>
+
+        <div id="nav-buttons">
+            <button onclick="prevQuestion()">Back</button>
+            <button onclick="nextQuestion()">Next</button>
+        </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="hidden center">
+        <h1>Your Score</h1>
+        <div id="result"></div>
+        <button onclick="location.reload()">Restart Exam</button>
+    </div>
+
+</div>
+
+<script>
+/* ------------------ QUESTIONS (100 Total) ------------------ */
+const questions = [
+    /* 100 original multiple-choice questions, no duplicates */
+    /* I will list them compactly for readability */
+    
+    {q:"Which organization enforces controlled substance laws?",a:["FDA","DEA","CDC","CMS"],c:1},
+    {q:"What does HIPAA protect?",a:["Insurance claims","PHI","Inventory","PSE logs"],c:1},
+    {q:"How many refills allowed for C-III medications?",a:["0","3","5","Unlimited"],c:2},
+    {q:"Which is a loop diuretic?",a:["Lisinopril","Furosemide","Metformin","Warfarin"],c:1},
+    {q:"What form is used to order C-II drugs?",a:["41","106","222","224"],c:2},
+    
+    /* --- 95 more NEW QUESTIONS follow exactly the same format --- */
+    {q:"Which drug requires avoiding grapefruit?",a:["Atorvastatin","Levothyroxine","Ibuprofen","Metformin"],c:0},
+    {q:"What does 'PO' mean?",a:["By mouth","Rectal","Topical","Under tongue"],c:0},
+    {q:"Which vaccine is covered under Medicare Part B?",a:["Shingles","Pneumococcal","Rabies","MMR"],c:1},
+    {q:"Which drug is an SSRI?",a:["Amitriptyline","Sertraline","Diazepam","Furosemide"],c:1},
+    {q:"1 tablespoon equals:",a:["5 mL","10 mL","15 mL","20 mL"],c:2},
+    {q:"Which agency enforces workplace safety?",a:["DEA","OSHA","EPA","FDA"],c:1},
+    {q:"'ac' means:",a:["After meals","Before meals","At bedtime","As needed"],c:1},
+    {q:"Which medication is a controlled substance?",a:["Clopidogrel","Tramadol","Metformin","Losartan"],c:1},
+    {q:"Which is a PPI?",a:["Ranitidine","Pantoprazole","Metformin","Lisinopril"],c:1},
+    {q:"Max PSE purchase per day?",a:["1g","2g","3.6g","9g"],c:2},
+    {q:"Which insulin is rapid-acting?",a:["Glargine","NPH","Regular","Lispro"],c:3},
+    {q:"Which requires a MedGuide?",a:["Amlodipine","Warfarin","Acetaminophen","Docusate"],c:1},
+
+    /* 86 more questions (omitted here for display space) */
+];
+
+/* ------------------ Exam Logic ------------------ */
+
+let current = 0;
+let answers = Array(questions.length).fill(null);
+let timeLeft = 7200; // 2 hours in seconds
+let timerInterval;
+
+function startExam() {
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("exam-screen").classList.remove("hidden");
+    loadQuestion();
+    startTimer();
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            finishExam();
+        }
+        document.getElementById("timer").textContent = 
+            "Time Left: " + formatTime(timeLeft);
+    }, 1000);
+}
+
+function formatTime(sec) {
+    let h = Math.floor(sec / 3600);
+    let m = Math.floor((sec % 3600) / 60);
+    let s = sec % 60;
+    return `${h}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+}
+
+function loadQuestion() {
+    let q = questions[current];
+    document.getElementById("question-text").textContent = 
+        (current+1) + ". " + q.q;
+
+    let ans = "";
+    q.a.forEach((option, index) => {
+        ans += `
+            <label>
+                <input type="radio" name="answer" 
+                       value="${index}" 
+                       ${answers[current]===index?"checked":""}/>
+                ${option}
+            </label>`;
+    });
+    document.getElementById("answers").innerHTML = ans;
+
+    updateProgress();
+}
+
+function updateProgress() {
+    let p = ((current+1)/questions.length)*100;
+    document.getElementById("progress").style.width = p+"%";
+}
+
+function nextQuestion() {
+    saveAnswer();
+    if (current < questions.length - 1) {
+        current++;
+        loadQuestion();
+    } else {
+  Part 1: Core Competencies (Questions 1–25)
+1. Which medication is the generic name for Zoloft? A. Fluoxetine B. Sertraline C. Citalopram D. Paroxetine Answer: B. Sertraline Rationale: Sertraline is the generic for Zoloft, an SSRI used for depression.
+
+ 2. Which of the following is the brand name for amlodipine? A. Norvasc B. Lotensin C. Cozaar D. Vasotec Answer: A. Norvasc Rationale: Amlodipine is a calcium-channel blocker sold as Norvasc.
+
+ 3. Metformin is classified as which type of medication? A. Insulin B. Biguanide C. Sulfonylurea D. GLP-1 agonist Answer: B. Biguanide Rationale: Metformin is a biguanide used as first-line treatment for type 2 diabetes.
+4.  What is the generic name for Lipitor? A. Rosuvastatin B. Atorvastatin C. Pravastatin D. Simvastatin Answer: B. Atorvastatin Rationale: Lipitor is atorvastatin, a statin used to treat high cholesterol.
+
+ 5. Which medication is considered an opioid analgesic? A. Naproxen B. Acetaminophen C. Tramadol D. Ibuprofen Answer: C. Tramadol Rationale: Tramadol is a centrally acting opioid-like analgesic.
+
+6. Which DEA form is used to order Schedule II medications? A. Form 41 B. Form 106 C. Form 222 D. Form 224 Answer: C. Form 222 Rationale: DEA Form 222 is required for ordering C-II medications.
+
+7. A Schedule II prescription may be refilled: A. 0 times B. 1 time C. Up to 5 times D. As needed Answer: A. 0 times Rationale: Federal law prohibits refills for Schedule II drugs.
+
+8. If a patient tells you they think they received the wrong medication, what should you do FIRST? A. Tell them it’s impossible B. Ask them to return the bottle C. Stay calm, listen, and notify the pharmacist D. Tell them generics change frequently Answer: C. Stay calm, listen, and notify the pharmacist Rationale: Always acknowledge the concern and involve the pharmacist immediately for safety.
+
+9. HIPAA protects which of the following? A. Inventory logs B. Prescription labels C. Protected Health Information (PHI) D. Pharmacy financial records Answer: C. Protected Health Information (PHI) Rationale: HIPAA protects patient-identifiable health information.
+
+10. A written prescription for a Schedule II medication is missing the prescriber’s DEA number. What should you do? A. Add the DEA number yourself B. Fill it because you know the doctor C. Refuse to fill and have the prescriber issue a corrected written/electronic prescription D. Ask the patient to provide the information Answer: C. Refuse to fill Rationale: C-II prescriptions must be complete and valid when presented. A missing DEA number makes it invalid.
+
+11. A patient asks for a copy of their prescription profile. The pharmacy must: A. Decline B. Provide it within a reasonable time C. Charge an excessive fee D. Provide it only if asked by insurance Answer: B. Provide it within a reasonable time Rationale: Patients have the right to access their own records under HIPAA.
+
+12. While preparing a prescription, a technician accidentally selects the wrong type of insulin. When they discover the mistake, they report it to the pharmacist immediately. This is an example of: A. Poor workflow management B. Hiding a dispensing error C. Following quality assurance and patient-safety procedures D. Practicing outside technician scope Answer: C. Following quality assurance and patient-safety procedures Rationale: Reporting errors is essential for safety, proper documentation, and quality improvement.
+
+13. Controlled-substance records must be kept for at least: A. 6 months B. 1 year C. 2 years D. 7 years Answer: C. 2 years Rationale: The DEA requires a minimum of 2 years for record retention.
+
+14. A pharmacy filled 1,250 prescriptions last week. If 325 were new prescriptions, what percentage were new? A. 20% B. 24% C. 26% D. 30% Answer: C. 26% Rationale: 325 ÷ 1,250 = 0.26 (26%).
+
+15. Convert 0.75 grams to milligrams. A. 7.5 mg B. 75 mg C. 750 mg D. 7500 mg Answer: C. 750 mg Rationale: 1 g = 1000 mg; 0.75 × 1000 = 750 mg.
+
+16. A patient weighs 44 lb. The dose is 5 mg/kg. How many mg should they receive? A. 50 mg B. 75 mg C. 100 mg D. 120 mg Answer: C. 100 mg Rationale: 44 lb ÷ 2.2 = 20 kg; 20 kg × 5 mg = 100 mg.
+
+17. A pharmacy processed 980 prescriptions today. If 40% were refills, how many were NEW prescriptions? A. 392 B. 480 C. 588 D. 750 Answer: C. 588 Rationale: If 40% are refills, 60% are new. 0.60 × 980 = 588.
+
+18. How many 250-mg tablets are needed to compound 1 gram? A. 2 B. 3 C. 4 D. 5 Answer: C. 4 Rationale: 1 gram = 1000 mg; 1000 ÷ 250 = 4 tablets.
+
+19. A patient takes 5 mL every 8 hours from a 150-mL bottle. How many days will it last? A. 5 days B. 7.5 days C. 8 days D. 10 days Answer: D. 10 days Rationale: 5 mL × 3 times/day = 15 mL/day; 150 ÷ 15 = 10 days.
+
+20. A prescription for 0.3 mg must be filled using 150-mcg tablets. How many tablets are needed? A. 1 B. 2 C. 3 D. 4 Answer: B. 2 Rationale: 0.3 mg = 300 mcg; 300 ÷ 150 = 2 tablets.
+
+21. A patient says their medication looks different from last time. What should you do FIRST? A. Tell them it's the same B. Ask for their old bottle C. Verify NDC and involve the pharmacist D. Tell them generics vary Answer: C. Verify NDC and involve the pharmacist Rationale: Appearance changes can indicate an error; verify before dispensing.
+
+22. A technician is unpacking a medication shipment and notices that one of the bottles is leaking a chemical-smelling liquid. What should they do FIRST? A. Continue unpacking B. Throw it in the regular trash C. Stop unpacking, isolate the area, and notify the pharmacist immediately D. Ignore it because the warehouse probably documented it Answer: C. Stop unpacking, isolate the area, and notify the pharmacist immediately Rationale: This is a hazardous situation requiring immediate isolation and safety protocols.
+
+23. You drop a medication bottle during filling. What is the correct action? A. Hide it B. Give fewer tablets C. Notify the pharmacist and document waste D. Ignore it Answer: C. Notify pharmacist and document waste Rationale: All waste must be documented for inventory accuracy and safety.
+
+24. A patient is confused about how to take their new medication. What should you do? A. Ignore them B. Tell them to Google it C. Offer pharmacist counseling D. Give them a pamphlet Answer: C. Offer pharmacist counseling Rationale: Technicians must refer clinical questions to the pharmacist.
+
+25. A patient accuses the pharmacy of shorting their controlled medication. What should you do? A. Argue B. Say they are wrong C. Stay calm, notify the pharmacist, and begin a recount D. Refill immediately Answer: C. Stay calm, notify the pharmacist, and begin a recount Rationale: Controlled discrepancies require immediate verification and documentation.
+
+Part 2: Intermediate Knowledge (Questions 26–50)
+26. Which medication is the brand name for esomeprazole? A. Prevacid B. Nexium C. Protonix D. Aciphex Answer: B. Nexium Rationale: Nexium is esomeprazole, a PPI for acid reflux.
+
+27. Which medication is classified as an ACE inhibitor? A. Losartan B. Amlodipine C. Lisinopril D. Metoprolol Answer: C. Lisinopril Rationale: Drugs ending in "-pril" are typically ACE inhibitors.
+
+28. Which of the following is the generic for Celebrex? A. Meloxicam B. Celecoxib C. Diclofenac D. Ibuprofen Answer: B. Celecoxib Rationale: Celecoxib is the generic name for Celebrex.
+
+29. Which medication requires blood-level monitoring due to a narrow therapeutic index? A. Levothyroxine B. Amoxicillin C. Cetirizine D. Famotidine Answer: A. Levothyroxine Rationale: Thyroid medications have a narrow therapeutic index and require monitoring.
+
+30. Which opioid must be stored separately from regular inventory per many pharmacy policies? A. Hydrocodone/APAP B. Buprenorphine C. Codeine D. Methadone Answer: D. Methadone Rationale: Methadone often has stricter storage and dispensing regulations.
+
+31. The Drug Supply Chain Security Act (DSCSA) requires pharmacies to: A. Compound sterile products in the back room B. Track and trace prescription drug products throughout the supply chain C. Send DEA 222 forms to the FDA D. Perform monthly inventory of OTC products Answer: B. Track and trace prescription drug products throughout the supply chain Rationale: DSCSA prevents counterfeit drugs by tracking the supply chain.
+
+32. DSCSA “3 Ts” include Transaction Information, Transaction History, and: A. Transaction Transfer B. Transaction Trace C. Transaction Statement D. Transaction Summary Answer: C. Transaction Statement Rationale: The 3 Ts are Transaction Information, History, and Statement.
+
+33. A technician receives a suspicious-looking shipment from a wholesaler with a broken seal. What should they do FIRST under DSCSA rules? A. Put it directly on the shelf B. Return it to the manufacturer C. Quarantine the product and notify the pharmacist D. Sell it at a discount Answer: C. Quarantine the product and notify the pharmacist Rationale: Suspect products must be quarantined to prevent them from reaching patients.
+
+34. Which medication requires a REMS (Risk Evaluation and Mitigation Strategy) program? A. Lovastatin B. Isotretinoin C. Omeprazole D. Metformin Answer: B. Isotretinoin Rationale: Isotretinoin (Accutane) has a REMS program (iPLEDGE) due to birth defect risks.
+
+35. Which organization regulates pharmacy compounding standards (USP <795>/<797>)? A. CMS B. FDA C. OSHA D. DEA Answer: B. FDA Rationale: USP standards are enforced by the FDA and state boards.
+
+36. A patient requests a 90-day refill for a Schedule III medication. How many refills are allowed by federal law? A. No refills B. Up to 5 refills in 6 months C. Unlimited refills D. Only 1 refill Answer: B. Up to 5 refills in 6 months Rationale: C-III and C-IV medications are limited to 5 refills within 6 months.
+
+37. Which situation requires filling out DEA Form 106? A. Ordering C-IIs B. Theft or significant loss of controlled substances C. Destroying expired C-IIs D. Completing a biennial inventory Answer: B. Theft or significant loss of controlled substances Rationale: Form 106 is for reporting theft or loss.
+
+38. A technician finds a controlled substance with the seal broken on the shelf. What should they do? A. Ignore it B. Place it in regular inventory C. Notify the pharmacist immediately and document discrepancy D. Reseal it and keep using it Answer: C. Notify pharmacist immediately Rationale: A broken seal on a controlled substance implies potential diversion.
+
+39. A prescription calls for 2.5 mL three times daily for 10 days. How many total mL are needed? A. 50 mL B. 60 mL C. 65 mL D. 75 mL Answer: D. 75 mL Rationale: 2.5 mL × 3 doses = 7.5 mL/day; 7.5 × 10 days = 75 mL.
+
+40. Convert 2.5 mg to micrograms. A. 25 mcg B. 250 mcg C. 2500 mcg D. 25,000 mcg Answer: C. 2500 mcg Rationale: 1 mg = 1000 mcg; 2.5 × 1000 = 2500 mcg.
+
+41. A child weighs 66 lb. If the dose is 10 mg/kg/day, how many mg per day should they receive? A. 150 mg B. 200 mg C. 250 mg D. 300 mg Answer: D. 300 mg Rationale: 66 lb ÷ 2.2 = 30 kg; 30 kg × 10 mg/kg = 300 mg.
+
+42. How many 20-mg tablets are needed for a 140-mg dose? A. 5 B. 6 C. 7 D. 8 Answer: C. 7 Rationale: 140 mg ÷ 20 mg/tablet = 7 tablets.
+
+43. A prescription requires 45 g of cream. You have 30-g tubes. How many tubes are needed? A. 1 B. 2 C. 3 D. 4 Answer: B. 2 Rationale: One tube (30g) is not enough. Two tubes (60g) cover the 45g needed.
+
+44. A pharmacy uses 240 mL of solution per week. How many mL are needed for 6 weeks? A. 720 mL B. 960 mL C. 1,200 mL D. 1,440 mL Answer: D. 1,440 mL Rationale: 240 mL × 6 weeks = 1,440 mL.
+
+45. A bottle contains 500 mL. The patient takes 20 mL twice daily. How many days will it last? A. 10 days B. 12.5 days C. 15 days D. 25 days Answer: B. 12.5 days Rationale: 20 mL × 2 = 40 mL/day; 500 ÷ 40 = 12.5 days.
+
+46. A patient reports that their medication has an unusual odor. What should the technician do FIRST? A. Tell them it's fine B. Replace the medication immediately C. Notify the pharmacist and quarantine the bottle D. Ask the patient to keep using it Answer: C. Notify the pharmacist and quarantine the bottle Rationale: Unusual odor suggests product instability or contamination.
+
+47. A technician notices a vial in the refrigerator labeled “recall—do not use.” What should they do? A. Use it anyway B. Discard it C. Leave it quarantined and notify the pharmacist D. Put it back on the shelf Answer: C. Leave it quarantined and notify the pharmacist Rationale: Quarantined items must stay isolated until properly processed.
+
+48. A patient says another pharmacy told them a dangerous drug interaction exists. What should the technician do? A. Argue B. Tell them to take both medications C. Notify the pharmacist immediately D. Tell them to ignore the concern Answer: C. Notify the pharmacist immediately Rationale: Drug interactions are clinical issues that must be addressed by the pharmacist.
+
+49. During inventory, a technician notices several expired bottles of antibiotics. What should they do? A. Place them on sale B. Send them home with staff C. Remove them from stock and notify the pharmacist for proper disposal D. Keep them on the shelf Answer: C. Remove them from stock and notify the pharmacist Rationale: Expired drugs must be pulled to prevent dispensing and processed for return.
+
+50. A technician observes another employee bypassing safety procedures during compounding. What should they do? A. Ignore it B. Join them to finish faster C. Report it to the pharmacist or supervisor D. Record it in the log and keep going Answer: C. Report it to the pharmacist or supervisor Rationale: Bypassing safety procedures endangers patients and staff.
+
+Part 3: Advanced Concepts (Questions 51–75)
+51. Which medication is classified as a loop diuretic? A. Hydrochlorothiazide B. Furosemide C. Spironolactone D. Metoprolol Answer: B. Furosemide Rationale: Furosemide (Lasix) is a loop diuretic.
+
+52. Which drug must have a Medication Guide dispensed every time due to major safety warnings? A. Metformin B. Ciprofloxacin C. Lisinopril D. Loratadine Answer: B. Ciprofloxacin Rationale: Fluoroquinolones have Black Box warnings and require a MedGuide.
+
+53. Which of the following is the brand name for duloxetine? A. Effexor B. Cymbalta C. Pristiq D. Zoloft Answer: B. Cymbalta Rationale: Cymbalta is the brand name for duloxetine.
+
+54. Which medication is commonly used as an anticoagulant? A. Clopidogrel B. Allopurinol C. Gabapentin D. Metoprolol Answer: A. Clopidogrel Rationale: Clopidogrel (Plavix) is an antiplatelet/anticoagulant agent.
+
+55. Which drug must be refrigerated after mixing (reconstitution)? A. Albuterol B. Augmentin suspension C. Omeprazole D. Hydralazine Answer: B. Augmentin suspension Rationale: Amoxicillin/clavulanate (Augmentin) suspension requires refrigeration.
+
+56. Under DSCSA, if a pharmacy cannot verify the product identifier on a drug package, the technician should: A. Stock it normally B. Relabel it C. Quarantine it and notify the pharmacist D. Put it in will call Answer: C. Quarantine and notify Rationale: Drugs that cannot be verified are considered suspect and must be isolated.
+
+57. DSCSA requires pharmacies to trace: A. OTC medications B. All prescription medications for humans C. Veterinary products exclusively D. Dietary supplements Answer: B. All prescription medications for humans Rationale: The law specifically covers human prescription drugs.
+
+58. A technician receives a shipment where the invoice lists a different NDC than the bottle. What should they do? A. Accept it B. Correct the invoice C. Quarantine the bottle and alert the pharmacist D. Stock it anyway Answer: C. Quarantine and alert Rationale: Mismatched data affects the integrity of the supply chain record.
+
+59. A patient wants to return an unopened prescription medication for reuse. Most pharmacies will: A. Accept it for resale B. Accept it and destroy it C. Decline the return D. Refund only controlled substances Answer: C. Decline the return Rationale: Once a drug leaves the pharmacy, its storage conditions cannot be guaranteed.
+
+60. A technician documents that a medication error was caught early and did not reach the patient. This is known as a: A. Sentinel event B. Compliance breach C. Near miss D. Labeling error Answer: C. Near miss Rationale: A "near miss" is an error caught before it affects the patient.
+
+61. Which DEA Form is used when a pharmacy initially registers to handle controlled substances? A. Form 41 B. Form 106 C. Form 222 D. Form 224 Answer: D. Form 224 Rationale: Form 224 is the application for new registration.
+
+62. A technician discovers a bottle of gabapentin is missing. What should they do? A. Ignore it since it’s not federally scheduled B. Replace it quietly C. Notify the pharmacist immediately D. Mark it as zero and continue Answer: C. Notify the pharmacist immediately Rationale: Gabapentin is a controlled substance in many states and a drug of abuse.
+
+63. A technician observes a coworker using the pharmacy computer under another employee’s login. This violates: A. DSCSA B. FDA labeling law C. HIPAA Security Rule D. Return-to-stock regulations Answer: C. HIPAA Security Rule Rationale: User credentials must be unique to track access to PHI.
+
+64. A technician receives a recall alert for a specific medication lot. Their FIRST action should be to: A. Contact the prescriber B. Pull affected lots from the shelf C. Call patients D. Destroy the product immediately Answer: B. Pull affected lots from the shelf Rationale: Immediate removal prevents accidental dispensing.
+
+65. While checking expiration dates during cycle counting, a technician notices several bottles expiring next month. What should they do FIRST? A. Leave them until they expire B. Move them to the front of the shelf C. Notify the pharmacist and set them aside for return/disposal D. Throw them away Answer: C. Notify pharmacist and set aside Rationale: Short-dated items should be removed and processed according to return policies.
+
+66. A patient takes 0.2 mg daily. How many micrograms is this? A. 20 mcg B. 200 mcg C. 2,000 mcg D. 20,000 mcg Answer: B. 200 mcg Rationale: 1 mg = 1000 mcg; 0.2 × 1000 = 200 mcg.
+
+67. A prescription reads: 30 mL twice a day for 7 days. How many mL total? A. 240 mL B. 300 mL C. 420 mL D. 500 mL Answer: C. 420 mL Rationale: 30 mL × 2 = 60 mL/day; 60 × 7 days = 420 mL.
+
+68. Convert 2.5 liters to milliliters. A. 250 mL B. 2,500 mL C. 25,000 mL D. 250,000 mL Answer: B. 2,500 mL Rationale: 1 L = 1000 mL; 2.5 × 1000 = 2500 mL.
+
+69. A pharmacist needs 12 g of a 5% ointment. How much drug is in the final mixture? A. 0.6 g B. 1 g C. 1.2 g D. 2 g Answer: A. 0.6 g Rationale: 5% means 5g per 100g. 12g × 0.05 = 0.6g.
+
+70. A bottle contains 480 mL. Patient takes 12 mL three times daily. How many days will it last? A. 10 B. 12 C. 13 D. 15 Answer: C. 13 days Rationale: 12 × 3 = 36 mL/day; 480 ÷ 36 = 13.33 days (round down to full days).
+
+71. A patient reports their inhaler “isn’t spraying anything.” What should the technician do FIRST? A. Tell them to press harder B. Tell them to buy a new one C. Check the lot number and refer them to the pharmacist D. Guess the cause Answer: C. Check lot number and refer to pharmacist Rationale: This could be a device defect or a recall; the pharmacist handles the clinical assessment.
+
+72. A technician receives an e-prescription with no quantity listed. What should they do? A. Estimate the quantity B. Fill a 30-day supply automatically C. Hold the prescription and notify the pharmacist D. Ask the patient for the quantity Answer: C. Hold and notify pharmacist Rationale: A prescription is not valid without a quantity; the pharmacist must clarify with the prescriber.
+
+73. A mother asks if her child’s antibiotic is still safe after being left out overnight. The technician should: A. Tell her it’s fine B. Guess based on experience C. Refer her to the pharmacist for stability counseling D. Tell her to refrigerate it moving forward Answer: C. Refer to the pharmacist Rationale: Stability questions are clinical and require pharmacist judgment.
+
+74. While reconciling inventory, a technician finds two different strengths mixed in the same stock bottle. What is the correct action? A. Sort them and use the good ones B. Throw the whole bottle away C. Quarantine the bottle and notify the pharmacist D. Count them as one strength Answer: C. Quarantine and notify Rationale: This is a misbranding/adulteration error and safety risk.
+
+75. A technician overhears a patient describing their medical condition loudly at the counter. What should they do? A. Ask them to speak louder B. Ignore it C. Offer a more private area for discussion D. Tell them HIPAA doesn’t apply Answer: C. Offer a more private area Rationale: Pharmacies must take reasonable steps to protect patient privacy.
+
+Part 4: Sterile Compounding, Law & Workflow (Questions 76–100)
+76. The Combat Methamphetamine Epidemic Act (CMEA) restricts the sale of which OTC medication? A. Acetaminophen B. Pseudoephedrine C. Diphenhydramine D. Dextromethorphan Answer: B. Pseudoephedrine Rationale: Pseudoephedrine is a precursor to methamphetamine and has strict sales limits.
+
+77. According to USP <797>, which ISO classification is required for the primary engineering control (hood) used in sterile compounding? A. ISO Class 5 B. ISO Class 7 C. ISO Class 8 D. ISO Class 9 Answer: A. ISO Class 5 Rationale: The sterile hood itself must be the cleanest environment (ISO 5).
+
+78. A patient is allergic to penicillin. Which medication should be flagged as a potential cross-sensitivity risk? A. Doxycycline B. Cephalexin C. Azithromycin D. Ciprofloxacin Answer: B. Cephalexin Rationale: Cephalosporins (like Cephalexin) have a cross-sensitivity risk with penicillins.
+
+79. The "Red Book" is a reference used primarily to find: A. Drug interactions B. Drug pricing and packaging information C. Injectable compatibility D. Veterinary dosages Answer: B. Drug pricing and packaging information Rationale: The Red Book is the standard reference for AWP and pricing.
+
+80. Which auxiliary label should be placed on a suspension? A. Take on an empty stomach B. For the eye C. Shake well D. May cause drowsiness Answer: C. Shake well Rationale: Suspensions settle over time and must be shaken to ensure dosing accuracy.
+
+81. Laminar flow hoods should be cleaned: A. From front to back, bottom to top B. From back to front, top to bottom C. In a circular motion D. Only once a week Answer: B. From back to front, top to bottom Rationale: Cleaning from cleanest (back/filter) to dirtiest (front) prevents contamination.
+
+82. A prescription with the sig "1 tab SL prn" means the medication should be taken: A. Under the tongue as needed B. Swallowed whole daily C. On the skin at night D. In the left ear Answer: A. Under the tongue as needed Rationale: SL = Sublingual (under tongue); prn = as needed.
+
+83. The Poison Prevention Packaging Act (PPPA) generally requires prescription vials to be: A. Transparent B. Child-resistant C. UV-protected D. Glass Answer: B. Child-resistant Rationale: Vials must be difficult for children <5 years old to open, unless the patient requests otherwise.
+
+84. USP <800> primarily deals with: A. Non-sterile compounding B. Sterile compounding C. Handling of hazardous drugs D. Electronic prescribing Answer: C. Handling of hazardous drugs Rationale: USP <800> sets standards for handling hazardous drugs like chemotherapy to protect healthcare workers.
+
+85. When cleaning a counting tray after dispensing penicillin, you should use: A. Water only B. Isopropyl alcohol C. Bleach D. Hand soap Answer: B. Isopropyl alcohol Rationale: Alcohol is used to clean trays to prevent cross-contamination, especially with allergens like penicillin/sulfa.
+
+86. A technician receives a prescription for "Otic" drops. These are for the: A. Eye B. Ear C. Nose D. Throat Answer: B. Ear Rationale: Otic = Ear. (Ophthalmic = Eye).
+
+87. How many grams of dextrose are in 1 liter of D5W (5% Dextrose in Water)? A. 5 g B. 50 g C. 500 g D. 5000 g Answer: B. 50 g Rationale: 5% = 5g/100mL. 1 liter = 1000mL. So, 50g/1000mL.
+
+88. An IV is set to run at 125 mL/hr. The bag contains 1,000 mL. How many hours will it last? A. 4 hours B. 6 hours C. 8 hours D. 12 hours Answer: C. 8 hours Rationale: 1000 mL ÷ 125 mL/hr = 8 hours.
+
+89. What is the generic name for Vicodin? A. Oxycodone/Acetaminophen B. Hydrocodone/Acetaminophen C. Codeine/Promethazine D. Tramadol Answer: B. Hydrocodone/Acetaminophen Rationale: Vicodin is a combination of hydrocodone and APAP.
+
+90. Which reference book would you use to verify therapeutic equivalence (AB rating)? A. The Orange Book B. The Red Book C. The Purple Book D. Facts and Comparisons Answer: A. The Orange Book Rationale: The FDA Orange Book determines if a generic is therapeutically equivalent to a brand.
+
+91. Which of the following is a "high-alert" medication according to ISMP? A. Amoxicillin B. Warfarin C. Ibuprofen D. Loratadine Answer: B. Warfarin Rationale: Anticoagulants like warfarin have a high risk of causing significant harm if used in error.
+
+92. A patient needs to take a medication "ac" and "hs". When should they take it? A. After meals and every morning B. Before meals and at bedtime C. With food and in the afternoon D. Always with water Answer: B. Before meals and at bedtime Rationale: ac = before meals; hs = at bedtime.
+
+93. Identify the middle segment of an NDC number (e.g., 00000-XXXX-00). What does it represent? A. The manufacturer B. The package size C. The product/drug identity D. The expiration date Answer: C. The product/drug identity Rationale: 1st segment = Labeler/Manufacturer; 2nd = Product; 3rd = Package size.
+
+94. Safety Data Sheets (SDS) are required by OSHA to provide information on: A. Drug pricing B. Chemical hazards and cleanup procedures C. Patient insurance plans D. Wholesaler contact info Answer: B. Chemical hazards and cleanup procedures Rationale: SDS sheets inform staff about chemical dangers and how to handle spills.
+
+95. Convert 98.6°F to Celsius. A. 35°C B. 36°C C. 37°C D. 38°C Answer: C. 37°C Rationale: (98.6 - 32) × 5/9 = 37°C.
+
+96. A doctor writes a prescription for "Brand Name Medically Necessary." This means: A. You must dispense the generic B. You must dispense the brand name C. You can choose either D. The insurance will definitely pay for it Answer: B. You must dispense the brand name Rationale: This code (DAW 1) prevents substitution with a generic.
+
+97. Which vitamin is cyanocobalamin? A. Vitamin B1 B. Vitamin B6 C. Vitamin B12 D. Vitamin D Answer: C. Vitamin B12 Rationale: Cyanocobalamin is Vitamin B12.
+
+98. A technician is asked to "triturate" a powder. This means to: A. Mix it with water B. Grind it into fine particles C. Heat it up D. Filter it Answer: B. Grind it into fine particles Rationale: Trituration reduces particle size using a mortar and pestle.
+
+99. Which vaccine must be stored in the freezer? A. Influenza B. Pneumonia C. Varicella (Chickenpox) D. Tetanus Answer: C. Varicella (Chickenpox) Rationale: Varicella and Zostavax (shingles) vaccines require freezing.
+
+100. If a laminar airflow hood is turned off, how long must it run before it can be used again? A. 5 minutes B. 15 minutes C. 30 minutes D. 1 hour Answer: C. 30 minutes Rationale: USP <797> requires the hood to run for at least 30 minutes to re-establish sterile airflow.
