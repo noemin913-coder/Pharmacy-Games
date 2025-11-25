@@ -1,1 +1,0 @@
-document.getElementById('app').innerHTML='<p>Exam loads here. (JS placeholder)</p>';
