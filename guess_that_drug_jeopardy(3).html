@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guess That Drug</title>
+  <style>
+    :root {
+      --navy: #061f5c;
+      --blue: #0b3b9e;
+      --blue-light: #174fc4;
+      --gold: #ffd54a;
+      --white: #ffffff;
+      --green: #1f8b4c;
+      --red: #b42318;
+      --bg: #eef2f8;
+      --text: #172033;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #dfe8f7, var(--bg));
+      color: var(--text);
+    }
+
+    .page {
+      width: min(1180px, 96%);
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    .hero {
+      background: var(--navy);
+      color: var(--white);
+      border-radius: 18px;
+      padding: 22px;
+      text-align: center;
+      box-shadow: 0 12px 30px rgba(6, 31, 92, 0.22);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: #dce8ff;
+    }
+
+    .scorebar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .scorebox {
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .scorebox span {
+      display: block;
+      color: #5e6b7d;
+      font-size: 0.9rem;
+    }
+
+    .scorebox strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--navy);
+      font-size: 1.6rem;
+    }
+
+    .instructions {
+      background: #fff9df;
+      border: 1px solid #f3d36d;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      line-height: 1.45;
+    }
+
+    .board-wrap {
+      overflow-x: auto;
+      border-radius: 16px;
+    }
+
+    .board {
+      min-width: 850px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      background: #04184a;
+      padding: 8px;
+      border-radius: 16px;
+    }
+
+    .category {
+      min-height: 86px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--blue);
+      color: white;
+      text-align: center;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 10px;
+      border: 2px solid #436cd3;
+      border-radius: 8px;
+      line-height: 1.25;
+    }
+
+    .clue-btn {
+      min-height: 86px;
+      border: 2px solid #436cd3;
+      border-radius: 8px;
+      background: var(--blue);
+      color: var(--gold);
+      font-size: 1.75rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .clue-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: var(--blue-light);
+    }
+
+    .clue-btn:disabled {
+      background: #4f5c7a;
+      color: #cfd6e5;
+      cursor: default;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .control-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: var(--blue);
+      color: white;
+    }
+
+    .secondary {
+      background: white;
+      color: var(--navy);
+      border: 1px solid #cbd5e1;
+    }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 16, 45, 0.72);
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 20;
+    }
+
+    .modal {
+      width: min(720px, 100%);
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 55px rgba(0,0,0,0.3);
+    }
+
+    .modal .value {
+      display: inline-block;
+      background: var(--navy);
+      color: var(--gold);
+      border-radius: 999px;
+      padding: 7px 13px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .modal h2 {
+      margin: 0 0 10px;
+      color: var(--navy);
+    }
+
+    .clue-text {
+      font-size: 1.25rem;
+      line-height: 1.5;
+      background: #f6f8fc;
+      border-left: 5px solid var(--blue);
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+    }
+
+    .letter-hint {
+      min-height: 42px;
+      margin: -6px 0 16px;
+      padding: 10px 12px;
+      border: 1px dashed #8ba5d9;
+      border-radius: 10px;
+      background: #eef4ff;
+      color: var(--navy);
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-align: center;
+    }
+
+    .answer-label {
+      font-weight: 700;
+      display: block;
+      margin-bottom: 7px;
+    }
+
+    .answer-input {
+      width: 100%;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 12px 13px;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .feedback {
+      min-height: 28px;
+      margin-top: 14px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .correct { color: var(--green); }
+    .incorrect { color: var(--red); }
+
+    .final-panel {
+      display: none;
+      margin-top: 20px;
+      background: white;
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .final-panel h2 {
+      color: var(--navy);
+      margin-top: 0;
+    }
+
+    .small-note {
+      color: #667085;
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 700px) {
+      .scorebar {
+        grid-template-columns: 1fr;
+      }
+
+      .modal {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>💊 Guess That Drug</h1>
+      <p>Choose a clue, type the medication name, and build your score.</p>
+    </section>
+
+    <section class="scorebar">
+      <div class="scorebox">
+        <span>Score</span>
+        <strong id="score">0</strong>
+      </div>
+      <div class="scorebox">
+        <span>Correct</span>
+        <strong id="correctCount">0</strong>
+      </div>
+      <div class="scorebox">
+        <span>Clues Left</span>
+        <strong id="cluesLeft">25</strong>
+      </div>
+    </section>
+
+    <div class="instructions">
+      <strong>How to play:</strong> Select a point value, read the clue, and type the drug name. Use the Letter Hint button when needed. Correct answers add points; incorrect answers subtract points.
+    </div>
+
+    <div class="board-wrap">
+      <section class="board" id="board"></section>
+    </div>
+
+    <div class="controls">
+      <button type="button" class="control-btn primary" id="newGameBtn">New Game</button>
+      <button type="button" class="control-btn secondary" id="resetScoreBtn">Reset Score</button>
+    </div>
+
+    <section class="final-panel" id="finalPanel">
+      <h2>Game Complete!</h2>
+      <p id="finalMessage"></p>
+      <button type="button" class="control-btn primary" id="playAgainBtn">Play Again</button>
+    </section>
+
+    <p class="small-note">For pharmacy education and review only.</p>
+  </main>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <span class="value" id="modalValue"></span>
+      <h2 id="modalTitle"></h2>
+      <div class="clue-text" id="clueText"></div>
+      <div class="letter-hint" id="letterHint" aria-live="polite"></div>
+
+      <label class="answer-label" for="answerInput">Enter the drug name:</label>
+      <input
+        id="answerInput"
+        class="answer-input"
+        type="text"
+        autocomplete="off"
+        placeholder="Example: acetaminophen"
+      />
+
+      <div class="modal-actions">
+        <button type="button" class="control-btn primary" id="submitAnswerBtn">Submit Answer</button>
+        <button type="button" class="control-btn secondary" id="letterHintBtn">Letter Hint</button>
+        <button type="button" class="control-btn secondary" id="revealAnswerBtn">Reveal Answer</button>
+        <button type="button" class="control-btn secondary" id="closeModalBtn">Close</button>
+      </div>
+
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script>
+    const categories = [
+      {
+        name: "Easy Identification",
+        clues: [
+          {
+            value: 100,
+            clue: "This common OTC medication treats mild pain and fever. Unlike NSAIDs, it does not reduce inflammation.",
+            answer: ["acetaminophen", "tylenol"]
+          },
+          {
+            value: 200,
+            clue: "This OTC NSAID is used for pain, fever, and inflammation. Common brand names include Advil and Motrin.",
+            answer: ["ibuprofen", "advil", "motrin"]
+          },
+          {
+            value: 300,
+            clue: "This first-generation antihistamine may cause significant drowsiness and is sold under the brand name Benadryl.",
+            answer: ["diphenhydramine", "benadryl"]
+          },
+          {
+            value: 400,
+            clue: "This second-generation antihistamine is taken once daily for allergies and is commonly sold as Claritin.",
+            answer: ["loratadine", "claritin"]
+          },
+          {
+            value: 500,
+            clue: "This thyroid replacement medication should usually be taken on an empty stomach and separated from calcium or iron.",
+            answer: ["levothyroxine", "synthroid"]
+          }
+        ]
+      },
+      {
+        name: "What Is It Used For?",
+        clues: [
+          {
+            value: 100,
+            clue: "This medication is commonly used as first-line treatment for type 2 diabetes and may cause stomach upset when first started.",
+            answer: ["metformin", "glucophage"]
+          },
+          {
+            value: 200,
+            clue: "This medication reduces stomach acid and is commonly used for GERD. It belongs to the proton pump inhibitor class.",
+            answer: ["omeprazole", "prilosec"]
+          },
+          {
+            value: 300,
+            clue: "This medication is commonly prescribed for high blood pressure and belongs to the calcium channel blocker class. Ankle swelling may occur.",
+            answer: ["amlodipine", "norvasc"]
+          },
+          {
+            value: 400,
+            clue: "This medication lowers LDL cholesterol and should be used with lifestyle changes. Muscle pain should be reported.",
+            answer: ["atorvastatin", "lipitor"]
+          },
+          {
+            value: 500,
+            clue: "This antiplatelet medication helps prevent blood clots after certain heart attacks, strokes, or coronary stent procedures.",
+            answer: ["clopidogrel", "plavix"]
+          }
+        ]
+      },
+      {
+        name: "Drug Class Clues",
+        clues: [
+          {
+            value: 100,
+            clue: "I am a selective serotonin reuptake inhibitor used for depression and anxiety. My brand name is Zoloft.",
+            answer: ["sertraline", "zoloft"]
+          },
+          {
+            value: 200,
+            clue: "I am an ACE inhibitor. A persistent dry cough is one of my well-known side effects.",
+            answer: ["lisinopril", "prinivil", "zestril"]
+          },
+          {
+            value: 300,
+            clue: "I am a beta blocker commonly used for blood pressure and heart-rate control. I may slow the pulse.",
+            answer: ["metoprolol", "lopressor", "toprol xl", "toprol-xl"]
+          },
+          {
+            value: 400,
+            clue: "I am an angiotensin II receptor blocker often selected when a patient cannot tolerate an ACE inhibitor cough.",
+            answer: ["losartan", "cozaar"]
+          },
+          {
+            value: 500,
+            clue: "I am a loop diuretic used to remove excess fluid. Patients may need potassium and kidney-function monitoring.",
+            answer: ["furosemide", "lasix"]
+          }
+        ]
+      },
+      {
+        name: "Counseling Corner",
+        clues: [
+          {
+            value: 100,
+            clue: "Avoid taking more than the recommended daily amount of this pain reliever because excessive doses can damage the liver.",
+            answer: ["acetaminophen", "tylenol"]
+          },
+          {
+            value: 200,
+            clue: "Take this thyroid medication consistently in the morning on an empty stomach, usually 30 to 60 minutes before breakfast.",
+            answer: ["levothyroxine", "synthroid"]
+          },
+          {
+            value: 300,
+            clue: "Patients taking this cholesterol medication should report unexplained muscle pain, weakness, or dark-colored urine.",
+            answer: ["atorvastatin", "lipitor"]
+          },
+          {
+            value: 400,
+            clue: "This medication may increase bleeding or bruising. Patients should tell healthcare providers they take it before procedures.",
+            answer: ["clopidogrel", "plavix"]
+          },
+          {
+            value: 500,
+            clue: "This diabetes medication is often taken with food to reduce stomach upset. Kidney function should be reviewed.",
+            answer: ["metformin", "glucophage"]
+          }
+        ]
+      },
+      {
+        name: "Challenge Round",
+        clues: [
+          {
+            value: 100,
+            clue: "I reduce acid by blocking histamine-2 receptors in the stomach. My common brand name is Pepcid.",
+            answer: ["famotidine", "pepcid"]
+          },
+          {
+            value: 200,
+            clue: "I am an osmotic laxative powder commonly mixed with liquid. My brand name is MiraLAX.",
+            answer: ["polyethylene glycol", "peg 3350", "miralax"]
+          },
+          {
+            value: 300,
+            clue: "I am a rescue inhaler used for sudden wheezing or shortness of breath. I am a short-acting beta-2 agonist.",
+            answer: ["albuterol", "ventolin", "proair", "proventil"]
+          },
+          {
+            value: 400,
+            clue: "I am an anticoagulant that requires regular INR blood tests and has many food and drug interactions.",
+            answer: ["warfarin", "coumadin", "jantoven"]
+          },
+          {
+            value: 500,
+            clue: "I am an antibiotic in the macrolide class, often supplied as a five-day dose pack.",
+            answer: ["azithromycin", "zithromax", "z pak", "z-pak"]
+          }
+        ]
+      }
+    ];
+
+    const board = document.getElementById("board");
+    const scoreDisplay = document.getElementById("score");
+    const correctDisplay = document.getElementById("correctCount");
+    const cluesLeftDisplay = document.getElementById("cluesLeft");
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalValue = document.getElementById("modalValue");
+    const clueText = document.getElementById("clueText");
+    const letterHint = document.getElementById("letterHint");
+    const answerInput = document.getElementById("answerInput");
+    const feedback = document.getElementById("feedback");
+    const finalPanel = document.getElementById("finalPanel");
+    const finalMessage = document.getElementById("finalMessage");
+
+    let score = 0;
+    let correctCount = 0;
+    let cluesLeft = 25;
+    let currentClue = null;
+    let currentButton = null;
+    let answered = false;
+    let hintLevel = 0;
+
+    function normalizeAnswer(text) {
+      return text
+        .toLowerCase()
+        .trim()
+        .replace(/[®™?!.]/g, "")
+        .replace(/^what\s+(is|are)\s+/, "")
+        .replace(/^who\s+(is|are)\s+/, "")
+        .replace(/^the\s+answer\s+is\s+/, "")
+        .replace(/[^a-z0-9 ]/g, "")
+        .replace(/\s+/g, " ");
+    }
+
+    function buildLetterPattern(answer, level) {
+      const words = answer.split(" ");
+      return words.map(word => {
+        if (word.length <= 2) {
+          return level >= 2 ? word.toUpperCase() : word[0].toUpperCase() + " _";
+        }
+
+        const chars = word.split("");
+        return chars.map((char, index) => {
+          if (index === 0) return char.toUpperCase();
+          if (level >= 2 && index === chars.length - 1) return char.toUpperCase();
+          if (level >= 3 && index % 2 === 0) return char.toUpperCase();
+          return "_";
+        }).join(" ");
+      }).join("   ");
+    }
+
+    function showLetterHint() {
+      if (!currentClue || answered) return;
+
+      hintLevel = Math.min(hintLevel + 1, 3);
+      const mainAnswer = normalizeAnswer(currentClue.answer[0]);
+      letterHint.textContent = buildLetterPattern(mainAnswer, hintLevel);
+
+      if (hintLevel === 1) {
+        feedback.textContent = "Hint: The first letter of each word is shown.";
+      } else if (hintLevel === 2) {
+        feedback.textContent = "Hint: The first and last letters are shown.";
+      } else {
+        feedback.textContent = "Final letter hint: Some additional letters are shown.";
+      }
+
+      feedback.className = "feedback";
+    }
+
+    function updateStats() {
+      scoreDisplay.textContent = score;
+      correctDisplay.textContent = correctCount;
+      cluesLeftDisplay.textContent = cluesLeft;
+    }
+
+    function buildBoard() {
+      board.innerHTML = "";
+
+      categories.forEach(category => {
+        const heading = document.createElement("div");
+        heading.className = "category";
+        heading.textContent = category.name;
+        board.appendChild(heading);
+      });
+
+      for (let row = 0; row < 5; row++) {
+        categories.forEach((category, categoryIndex) => {
+          const clue = category.clues[row];
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "clue-btn";
+          button.textContent = `$${clue.value}`;
+          button.dataset.categoryIndex = categoryIndex;
+          button.dataset.clueIndex = row;
+          button.addEventListener("click", () => openClue(categoryIndex, row, button));
+          board.appendChild(button);
+        });
+      }
+    }
+
+    function openClue(categoryIndex, clueIndex, button) {
+      currentClue = categories[categoryIndex].clues[clueIndex];
+      currentButton = button;
+      answered = false;
+      hintLevel = 0;
+
+      modalTitle.textContent = categories[categoryIndex].name;
+      modalValue.textContent = `$${currentClue.value}`;
+      clueText.textContent = currentClue.clue;
+      letterHint.textContent = "Select “Letter Hint” to reveal part of the answer.";
+      answerInput.value = "";
+      answerInput.disabled = false;
+      feedback.textContent = "";
+      feedback.className = "feedback";
+      modalBackdrop.style.display = "flex";
+
+      setTimeout(() => answerInput.focus(), 50);
+    }
+
+    function submitAnswer() {
+      if (!currentClue || answered) return;
+
+      const guess = normalizeAnswer(answerInput.value);
+      if (!guess) {
+        feedback.textContent = "Please enter an answer.";
+        feedback.className = "feedback incorrect";
+        return;
+      }
+
+      const isCorrect = currentClue.answer.some(answer => normalizeAnswer(answer) === guess);
+      answered = true;
+      answerInput.disabled = true;
+      currentButton.disabled = true;
+      currentButton.textContent = "—";
+      cluesLeft--;
+
+      if (isCorrect) {
+        score += currentClue.value;
+        correctCount++;
+        feedback.textContent = `Correct! ${currentClue.answer[0]} +${currentClue.value} points`;
+        feedback.className = "feedback correct";
+      } else {
+        score -= currentClue.value;
+        feedback.textContent = `Incorrect. The answer was ${currentClue.answer[0]}. -${currentClue.value} points`;
+        feedback.className = "feedback incorrect";
+      }
+
+      updateStats();
+      checkGameComplete();
+    }
+
+    function revealAnswer() {
+      if (!currentClue || answered) return;
+
+      answered = true;
+      answerInput.disabled = true;
+      currentButton.disabled = true;
+      currentButton.textContent = "—";
+      cluesLeft--;
+      score -= currentClue.value;
+
+      feedback.textContent = `The answer was ${currentClue.answer[0]}. -${currentClue.value} points`;
+      feedback.className = "feedback incorrect";
+
+      updateStats();
+      checkGameComplete();
+    }
+
+    function closeModal() {
+      modalBackdrop.style.display = "none";
+    }
+
+    function checkGameComplete() {
+      if (cluesLeft === 0) {
+        finalMessage.textContent = `Final score: ${score}. You answered ${correctCount} out of 25 clues correctly.`;
+        finalPanel.style.display = "block";
+      }
+    }
+
+    function newGame() {
+      score = 0;
+      correctCount = 0;
+      cluesLeft = 25;
+      currentClue = null;
+      currentButton = null;
+      answered = false;
+      finalPanel.style.display = "none";
+      closeModal();
+      updateStats();
+      buildBoard();
+    }
+
+    function resetScore() {
+      score = 0;
+      correctCount = 0;
+      updateStats();
+    }
+
+    document.getElementById("submitAnswerBtn").addEventListener("click", submitAnswer);
+    document.getElementById("letterHintBtn").addEventListener("click", showLetterHint);
+    document.getElementById("revealAnswerBtn").addEventListener("click", revealAnswer);
+    document.getElementById("closeModalBtn").addEventListener("click", closeModal);
+    document.getElementById("newGameBtn").addEventListener("click", newGame);
+    document.getElementById("playAgainBtn").addEventListener("click", newGame);
+    document.getElementById("resetScoreBtn").addEventListener("click", resetScore);
+
+    answerInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") submitAnswer();
+    });
+
+    modalBackdrop.addEventListener("click", event => {
+      if (event.target === modalBackdrop) closeModal();
+    });
+
+    buildBoard();
+    updateStats();
+  </script>
+</body>
+</html>
