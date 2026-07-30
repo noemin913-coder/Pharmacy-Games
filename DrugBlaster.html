@@ -629,7 +629,37 @@
       const range = el("drugRange").value;
       if (range === "all") return [...drugs];
       const [start, end] = range.split("-").map(Number);
-      return drugs.filter(drug => drug.rank >= start && drug.rank <= end);
+      const selected = drugs.filter(drug => drug.rank >= start && drug.rank <= end);
+
+      // Guard against selecting a range that has no loaded drug records.
+      // This can happen when the interface offers Top-200 ranges but the
+      // current data array only contains the first 20 sample drugs.
+      if (!selected.length) {
+        el("drugRange").value = "all";
+        return [...drugs];
+      }
+
+      return selected;
+    }
+
+    function refreshDrugRangeOptions() {
+      const select = el("drugRange");
+      const maxRank = Math.max(...drugs.map(drug => drug.rank));
+
+      [...select.options].forEach(option => {
+        if (option.value === "all") return;
+        const [start] = option.value.split("-").map(Number);
+        const available = start <= maxRank && drugs.some(drug => {
+          const [rangeStart, rangeEnd] = option.value.split("-").map(Number);
+          return drug.rank >= rangeStart && drug.rank <= rangeEnd;
+        });
+        option.disabled = !available;
+        if (!available && !option.textContent.includes("not loaded")) {
+          option.textContent += " — not loaded";
+        }
+      });
+
+      if (select.selectedOptions[0]?.disabled) select.value = "all";
     }
 
     function getEnabledModes() {
@@ -1071,6 +1101,8 @@
       resizeCanvas();
       positionTargets();
     });
+
+    refreshDrugRangeOptions();
 
     el("bankStatus").textContent =
       `${drugs.length} sample drugs · ${drugs.length * 4} possible core questions loaded`;
