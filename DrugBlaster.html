@@ -1,0 +1,1083 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drug Blaster — Retro Arcade Study Game</title>
+  <style>
+    :root {
+      --bg: #070713;
+      --panel: #111126;
+      --panel-2: #0a0a1b;
+      --text: #ffffff;
+      --muted: #aaa6c8;
+      --neon: #48a7ff;
+      --purple: #40145f;
+      --danger: #ff416c;
+      --success: #56f39a;
+      --border: rgba(255,255,255,.16);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: #05050d; color: var(--text); }
+    body {
+      font-family: "Courier New", ui-monospace, monospace;
+      padding: 18px;
+    }
+
+    button, select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .shell {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: var(--bg);
+      box-shadow: 0 20px 70px rgba(0,0,0,.55);
+    }
+
+    .marquee {
+      padding: 22px 16px 18px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background:
+        linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent),
+        var(--panel);
+    }
+
+    .title {
+      color: var(--neon);
+      font-size: clamp(2rem, 7vw, 4.2rem);
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-shadow:
+        4px 4px 0 var(--purple),
+        0 0 12px var(--neon),
+        0 0 30px var(--neon);
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: #efeaff;
+      font-size: .82rem;
+      letter-spacing: .2em;
+    }
+
+    .setup {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 12px;
+      padding: 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel-2);
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: .75rem;
+      letter-spacing: .08em;
+    }
+
+    select, .control-btn {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 9px 11px;
+      color: var(--text);
+      background: #090916;
+    }
+
+    .start-btn {
+      min-height: 44px;
+      border: 3px solid white;
+      border-radius: 12px;
+      padding: 9px 16px;
+      color: #06101c;
+      background: var(--neon);
+      font-weight: 900;
+      letter-spacing: .08em;
+      box-shadow: 0 5px 0 var(--purple), 0 0 18px var(--neon);
+    }
+
+    .start-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 var(--purple), 0 0 10px var(--neon);
+    }
+
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0,1fr));
+      gap: 8px;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      background: #0c0c1b;
+    }
+
+    .hud-box {
+      min-width: 0;
+      padding: 8px 6px;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+
+    .hud-box span {
+      display: block;
+      color: var(--muted);
+      font-size: .62rem;
+      letter-spacing: .1em;
+    }
+
+    .hud-box strong {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      color: var(--neon);
+      font-size: clamp(.72rem, 2.2vw, 1rem);
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 8px var(--neon);
+    }
+
+    .mission {
+      padding: 12px 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: #090916;
+    }
+
+    .mission small {
+      color: var(--muted);
+      letter-spacing: .18em;
+    }
+
+    .prompt {
+      margin-top: 5px;
+      font-weight: 900;
+      line-height: 1.35;
+    }
+
+    .arena {
+      position: relative;
+      height: 560px;
+      overflow: hidden;
+      cursor: crosshair;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(68,20,110,.65), transparent 42%),
+        linear-gradient(#060611, #120727);
+    }
+
+    .stars, .stars::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      opacity: .55;
+      background-image:
+        radial-gradient(circle, #fff 1px, transparent 1px),
+        radial-gradient(circle, var(--neon) 1px, transparent 1px);
+      background-size: 46px 46px, 73px 73px;
+      animation: stars 15s linear infinite;
+    }
+
+    .stars::after {
+      opacity: .4;
+      background-size: 31px 31px, 89px 89px;
+      animation-duration: 9s;
+    }
+
+    .grid-floor {
+      position: absolute;
+      left: -20%;
+      right: -20%;
+      bottom: -70px;
+      height: 48%;
+      transform: perspective(260px) rotateX(59deg);
+      transform-origin: center bottom;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.13) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.13) 1px, transparent 1px);
+      background-size: 42px 30px;
+      mask-image: linear-gradient(to top, black, transparent);
+    }
+
+    .scanlines {
+      position: absolute;
+      inset: 0;
+      z-index: 25;
+      pointer-events: none;
+      opacity: .12;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 3px,
+        white 4px
+      );
+      box-shadow: inset 0 0 65px black;
+    }
+
+    #targetLayer {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+    }
+
+    .capsule {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: clamp(165px, 22vw, 215px);
+      min-height: 68px;
+      overflow: hidden;
+      border: 3px solid rgba(255,255,255,.92);
+      border-radius: 999px;
+      padding: 9px 18px;
+      color: white;
+      background: linear-gradient(90deg, var(--neon) 0 49.5%, var(--purple) 50.5% 100%);
+      font-weight: 900;
+      line-height: 1.05;
+      text-align: center;
+      text-transform: uppercase;
+      overflow-wrap: anywhere;
+      box-shadow:
+        inset 0 0 10px rgba(255,255,255,.18),
+        0 0 10px var(--neon),
+        0 0 24px rgba(255,255,255,.1);
+      animation: float 1.3s ease-in-out infinite alternate;
+      transition: left .5s ease, top .5s ease, transform .1s ease, opacity .18s ease;
+    }
+
+    .capsule::after {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 50%;
+      width: 2px;
+      content: "";
+      background: rgba(255,255,255,.68);
+    }
+
+    .capsule span {
+      position: relative;
+      z-index: 2;
+      display: block;
+      width: 100%;
+      padding: 0 4px;
+      text-shadow: 1px 2px 2px rgba(0,0,0,.75);
+    }
+
+    .capsule:hover { transform: scale(1.07) rotate(-1deg); }
+    .capsule.hit { opacity: 0; transform: scale(1.8) rotate(14deg); }
+    .capsule.wrong { animation: wrong .28s linear; filter: saturate(.35); }
+
+    #particles {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    #flash {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    #message {
+      position: absolute;
+      inset-inline: 0;
+      top: 18px;
+      z-index: 31;
+      text-align: center;
+      font-size: clamp(1rem, 3vw, 1.6rem);
+      font-weight: 900;
+      letter-spacing: .08em;
+      pointer-events: none;
+      text-shadow: 3px 3px var(--purple), 0 0 10px var(--neon);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(0,0,0,.48);
+    }
+
+    .overlay.hidden { display: none; }
+
+    .overlay-card {
+      width: min(430px, 100%);
+      padding: 24px;
+      text-align: center;
+      border: 1px solid var(--neon);
+      border-radius: 18px;
+      background: rgba(8,8,24,.96);
+      box-shadow: 0 0 25px var(--neon);
+    }
+
+    .ready {
+      color: var(--neon);
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: .1em;
+      text-shadow: 0 0 10px var(--neon);
+    }
+
+    .results {
+      margin: 16px 0;
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 8px;
+    }
+
+    .result-box {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #101025;
+    }
+
+    .result-box small { color: var(--muted); }
+    .result-box strong { display: block; margin-top: 4px; color: var(--neon); }
+
+    .review-list {
+      max-height: 150px;
+      overflow: auto;
+      margin-top: 12px;
+      padding: 10px;
+      text-align: left;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #090916;
+      font-size: .78rem;
+    }
+
+    .footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border-top: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .blast-core, .blast-ring, .boom {
+      position: absolute;
+      z-index: 22;
+      pointer-events: none;
+    }
+
+    .blast-core {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 0 15px white, 0 0 35px var(--neon);
+      animation: core .42s ease-out forwards;
+    }
+
+    .blast-ring {
+      width: 30px;
+      height: 30px;
+      border: 5px solid var(--neon);
+      border-radius: 50%;
+      animation: ring .5s ease-out forwards;
+    }
+
+    .boom {
+      color: white;
+      font-size: clamp(1.3rem, 5vw, 2.2rem);
+      font-weight: 900;
+      text-shadow: 3px 3px var(--purple), 0 0 12px var(--neon);
+      animation: boom .7s ease-out forwards;
+    }
+
+    .shake { animation: shake .27s linear; }
+    .flash { animation: flash .2s ease-out; }
+
+    @keyframes stars { to { transform: translateY(75px); } }
+    @keyframes float { from { translate: 0 -3px; } to { translate: 0 4px; } }
+    @keyframes wrong { 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+    @keyframes core { from { transform: translate(-50%,-50%) scale(.2); opacity:1; } to { transform: translate(-50%,-50%) scale(6); opacity:0; } }
+    @keyframes ring { from { transform: translate(-50%,-50%) scale(.2); opacity:1; } to { transform: translate(-50%,-50%) scale(8); opacity:0; } }
+    @keyframes boom { 0% { transform: translate(-50%,-30%) scale(.3); opacity:0; } 35% { transform: translate(-50%,-85%) scale(1.35); opacity:1; } 100% { transform: translate(-50%,-170%) scale(.8); opacity:0; } }
+    @keyframes shake { 20% { transform: translate(-7px,3px); } 40% { transform: translate(7px,-4px); } 60% { transform: translate(-5px,-2px); } 80% { transform: translate(5px,3px); } }
+    @keyframes flash { from { background: rgba(255,255,255,.65); } to { background: transparent; } }
+
+    @media (max-width: 820px) {
+      .setup { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .hud { grid-template-columns: repeat(3,minmax(0,1fr)); }
+      .arena { height: 640px; }
+    }
+
+    @media (max-width: 520px) {
+      body { padding: 0; }
+      .shell { border-radius: 0; }
+      .setup { grid-template-columns: 1fr; }
+      .hud { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .arena { height: 680px; }
+      .capsule { width: 145px; min-height: 62px; padding: 8px 12px; }
+      .title { letter-spacing: .06em; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell" id="game">
+    <header class="marquee">
+      <div class="title">DRUG BLASTER</div>
+      <div class="subtitle">RETRO ARCADE STUDY SYSTEM // PLAYER 1</div>
+    </header>
+
+    <section class="setup" aria-label="Game setup">
+      <label>
+        PLAY STYLE
+        <select id="playStyle">
+          <option value="arcade">Arcade Mode</option>
+          <option value="test">Test Mode</option>
+          <option value="review">Review Missed</option>
+        </select>
+      </label>
+
+      <label>
+        QUESTION TYPE
+        <select id="questionMode">
+          <option value="mixed">Mixed</option>
+          <option value="brandToGeneric">Brand → Generic</option>
+          <option value="genericToBrand">Generic → Brand</option>
+          <option value="drugToClass">Drug → Class</option>
+          <option value="drugToIndication">Drug → Indication</option>
+        </select>
+      </label>
+
+      <label>
+        TEST SIZE
+        <select id="testSize">
+          <option value="10">Quick Blast — 10</option>
+          <option value="25" selected>Arcade Run — 25</option>
+          <option value="50">Boss Battle — 50</option>
+          <option value="100">Mega Test — 100</option>
+          <option value="200">Top 200 Marathon</option>
+          <option value="all">Full Available Bank</option>
+        </select>
+      </label>
+
+      <label>
+        DRUG RANGE
+        <select id="drugRange">
+          <option value="all">All available drugs</option>
+          <option value="1-20">Drugs 1–20</option>
+          <option value="21-40">Drugs 21–40</option>
+          <option value="41-60">Drugs 41–60</option>
+          <option value="61-80">Drugs 61–80</option>
+          <option value="81-100">Drugs 81–100</option>
+          <option value="101-120">Drugs 101–120</option>
+          <option value="121-140">Drugs 121–140</option>
+          <option value="141-160">Drugs 141–160</option>
+          <option value="161-180">Drugs 161–180</option>
+          <option value="181-200">Drugs 181–200</option>
+        </select>
+      </label>
+
+      <button class="start-btn" id="startButton" type="button">START GAME</button>
+      <button class="control-btn" id="soundButton" type="button">🔊 SOUND ON</button>
+      <button class="control-btn" id="resetProgressButton" type="button">RESET MISSED LIST</button>
+    </section>
+
+    <section class="hud" aria-label="Game status">
+      <div class="hud-box"><span>SCORE</span><strong id="score">000000</strong></div>
+      <div class="hud-box"><span>QUESTION</span><strong id="questionNumber">0 / 0</strong></div>
+      <div class="hud-box"><span>ACCURACY</span><strong id="accuracy">0%</strong></div>
+      <div class="hud-box"><span>COMBO</span><strong id="combo">X1</strong></div>
+      <div class="hud-box"><span>LIVES</span><strong id="lives">♥♥♥</strong></div>
+      <div class="hud-box"><span>MISSED</span><strong id="missedCount">0</strong></div>
+    </section>
+
+    <section class="mission">
+      <small>CURRENT MISSION</small>
+      <div id="prompt" class="prompt">CHOOSE YOUR SETTINGS AND PRESS START</div>
+    </section>
+
+    <section id="arena" class="arena" aria-label="Drug Blaster play area">
+      <div class="stars" aria-hidden="true"></div>
+      <div class="grid-floor" aria-hidden="true"></div>
+      <div class="scanlines" aria-hidden="true"></div>
+      <canvas id="particles"></canvas>
+      <div id="flash"></div>
+      <div id="message" aria-live="polite"></div>
+      <div id="targetLayer"></div>
+
+      <div id="overlay" class="overlay">
+        <div class="overlay-card" id="overlayCard">
+          <div class="ready">PLAYER 1 READY</div>
+          <p>Questions are shuffled into a no-repeat deck. Missed questions are saved for Review Mode.</p>
+          <button class="start-btn" id="overlayStart" type="button">INSERT COIN</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>1 correct capsule + 4 randomized distractors</span>
+      <span id="bankStatus">20 sample drugs loaded</span>
+    </footer>
+  </main>
+
+  <script>
+    /*
+      DRUG DATA
+      ----------
+      Add the rest of your Top 200 list here using the same structure.
+      The game automatically creates a larger question bank from each entry.
+    */
+    const drugs = [
+      { rank:1, generic:"atorvastatin", brands:["Lipitor"], className:"Statin", indications:["High cholesterol"] },
+      { rank:2, generic:"levothyroxine", brands:["Synthroid","Levoxyl"], className:"Thyroid hormone", indications:["Hypothyroidism"] },
+      { rank:3, generic:"lisinopril", brands:["Zestril","Prinivil"], className:"ACE inhibitor", indications:["Hypertension"] },
+      { rank:4, generic:"metformin", brands:["Glucophage"], className:"Biguanide", indications:["Type 2 diabetes"] },
+      { rank:5, generic:"amlodipine", brands:["Norvasc"], className:"Calcium channel blocker", indications:["Hypertension"] },
+      { rank:6, generic:"metoprolol", brands:["Lopressor","Toprol-XL"], className:"Beta blocker", indications:["Hypertension"] },
+      { rank:7, generic:"omeprazole", brands:["Prilosec"], className:"Proton pump inhibitor", indications:["GERD"] },
+      { rank:8, generic:"losartan", brands:["Cozaar"], className:"ARB", indications:["Hypertension"] },
+      { rank:9, generic:"gabapentin", brands:["Neurontin"], className:"Anticonvulsant", indications:["Neuropathic pain"] },
+      { rank:10, generic:"sertraline", brands:["Zoloft"], className:"SSRI", indications:["Depression"] },
+      { rank:11, generic:"albuterol", brands:["Ventolin","ProAir"], className:"Short-acting beta agonist", indications:["Bronchospasm"] },
+      { rank:12, generic:"hydrochlorothiazide", brands:["Microzide"], className:"Thiazide diuretic", indications:["Hypertension"] },
+      { rank:13, generic:"furosemide", brands:["Lasix"], className:"Loop diuretic", indications:["Edema"] },
+      { rank:14, generic:"pantoprazole", brands:["Protonix"], className:"Proton pump inhibitor", indications:["GERD"] },
+      { rank:15, generic:"escitalopram", brands:["Lexapro"], className:"SSRI", indications:["Depression"] },
+      { rank:16, generic:"rosuvastatin", brands:["Crestor"], className:"Statin", indications:["High cholesterol"] },
+      { rank:17, generic:"bupropion", brands:["Wellbutrin"], className:"NDRI antidepressant", indications:["Depression"] },
+      { rank:18, generic:"fluoxetine", brands:["Prozac"], className:"SSRI", indications:["Depression"] },
+      { rank:19, generic:"amoxicillin", brands:["Amoxil"], className:"Penicillin antibiotic", indications:["Bacterial infection"] },
+      { rank:20, generic:"montelukast", brands:["Singulair"], className:"Leukotriene receptor antagonist", indications:["Asthma"] }
+    ];
+
+    const el = id => document.getElementById(id);
+    const game = el("game");
+    const arena = el("arena");
+    const targetLayer = el("targetLayer");
+    const canvas = el("particles");
+    const ctx = canvas.getContext("2d");
+
+    let deck = [];
+    let currentQuestion = null;
+    let playing = false;
+    let muted = false;
+    let audioCtx = null;
+    let score = 0;
+    let combo = 1;
+    let lives = 3;
+    let answered = 0;
+    let correct = 0;
+    let wrongAnswers = [];
+    let particles = [];
+    let movementTimer = null;
+    let runSize = 0;
+
+    function shuffle(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function getSavedMissed() {
+      try {
+        return JSON.parse(localStorage.getItem("drugBlasterMissed") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveMissed(items) {
+      const unique = [];
+      const seen = new Set();
+      for (const item of items) {
+        const key = `${item.rank}:${item.mode}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          unique.push(item);
+        }
+      }
+      localStorage.setItem("drugBlasterMissed", JSON.stringify(unique));
+    }
+
+    function getSelectedDrugs() {
+      const range = el("drugRange").value;
+      if (range === "all") return [...drugs];
+      const [start, end] = range.split("-").map(Number);
+      return drugs.filter(drug => drug.rank >= start && drug.rank <= end);
+    }
+
+    function getEnabledModes() {
+      const chosen = el("questionMode").value;
+      return chosen === "mixed"
+        ? ["brandToGeneric","genericToBrand","drugToClass","drugToIndication"]
+        : [chosen];
+    }
+
+    function createQuestion(drug, mode) {
+      if (mode === "brandToGeneric") {
+        return {
+          rank: drug.rank,
+          mode,
+          prompt: `BLAST THE GENERIC FOR ${drug.brands[0]}`,
+          answer: drug.generic,
+          explanation: `${drug.brands[0]} is a brand name for ${drug.generic}.`
+        };
+      }
+      if (mode === "genericToBrand") {
+        return {
+          rank: drug.rank,
+          mode,
+          prompt: `BLAST A BRAND FOR ${drug.generic}`,
+          answer: drug.brands[0],
+          explanation: `${drug.brands[0]} is a brand name for ${drug.generic}.`
+        };
+      }
+      if (mode === "drugToClass") {
+        return {
+          rank: drug.rank,
+          mode,
+          prompt: `BLAST THE CLASS FOR ${drug.generic}`,
+          answer: drug.className,
+          explanation: `${drug.generic} is classified as ${drug.className}.`
+        };
+      }
+      return {
+        rank: drug.rank,
+        mode,
+        prompt: `BLAST A COMMON USE FOR ${drug.generic}`,
+        answer: drug.indications[0],
+        explanation: `${drug.generic} is commonly used for ${drug.indications[0]}.`
+      };
+    }
+
+    function answerPool(mode, selectedDrugs) {
+      if (mode === "brandToGeneric") return selectedDrugs.map(d => d.generic);
+      if (mode === "genericToBrand") return selectedDrugs.map(d => d.brands[0]);
+      if (mode === "drugToClass") return selectedDrugs.map(d => d.className);
+      return selectedDrugs.map(d => d.indications[0]);
+    }
+
+    function buildDeck() {
+      const style = el("playStyle").value;
+      const selectedDrugs = getSelectedDrugs();
+      const enabledModes = getEnabledModes();
+
+      if (!selectedDrugs.length) {
+        throw new Error("No drugs are loaded in the selected range.");
+      }
+
+      if (style === "review") {
+        const saved = getSavedMissed();
+        deck = saved
+          .map(item => {
+            const drug = drugs.find(d => d.rank === item.rank);
+            return drug ? createQuestion(drug, item.mode) : null;
+          })
+          .filter(Boolean);
+      } else {
+        deck = selectedDrugs.flatMap(drug =>
+          enabledModes.map(mode => createQuestion(drug, mode))
+        );
+      }
+
+      deck = shuffle(deck);
+
+      const requested = el("testSize").value;
+      const maxQuestions = requested === "all" ? deck.length : Number(requested);
+      deck = deck.slice(0, Math.min(maxQuestions, deck.length));
+      runSize = deck.length;
+
+      if (!runSize) {
+        throw new Error(style === "review"
+          ? "Your missed-question list is empty."
+          : "No questions could be created.");
+      }
+    }
+
+    function getChoices(question) {
+      const selectedDrugs = getSelectedDrugs().length >= 5 ? getSelectedDrugs() : drugs;
+      const pool = [...new Set(answerPool(question.mode, selectedDrugs))]
+        .filter(value => value !== question.answer);
+      return shuffle([question.answer, ...shuffle(pool).slice(0, 4)]);
+    }
+
+    function fitText(target, text) {
+      const span = target.querySelector("span");
+      let size = 16;
+      if (text.length > 24) size = 10;
+      else if (text.length > 19) size = 11;
+      else if (text.length > 14) size = 12;
+      else if (text.length > 10) size = 14;
+      span.style.fontSize = `${size}px`;
+
+      requestAnimationFrame(() => {
+        while (span.scrollWidth > target.clientWidth - 32 && size > 9) {
+          size -= 1;
+          span.style.fontSize = `${size}px`;
+        }
+      });
+    }
+
+    function getSlots(count) {
+      const width = arena.clientWidth;
+      const mobile = width < 640;
+      const cols = mobile ? 2 : 3;
+      const rows = Math.ceil(count / cols);
+      const topPadding = 72;
+      const sidePadding = mobile ? 8 : 22;
+      const bottomPadding = 24;
+      const usableWidth = width - sidePadding * 2;
+      const usableHeight = arena.clientHeight - topPadding - bottomPadding;
+      const cellWidth = usableWidth / cols;
+      const cellHeight = usableHeight / rows;
+      const slots = [];
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          slots.push({
+            x: sidePadding + col * cellWidth + cellWidth / 2,
+            y: topPadding + row * cellHeight + cellHeight / 2
+          });
+        }
+      }
+      return shuffle(slots).slice(0, count);
+    }
+
+    function positionTargets() {
+      const targets = [...targetLayer.querySelectorAll(".capsule")];
+      const slots = getSlots(targets.length);
+
+      targets.forEach((target, index) => {
+        const slot = slots[index];
+        const jitterX = (Math.random() - .5) * Math.min(18, arena.clientWidth * .02);
+        const jitterY = (Math.random() - .5) * 14;
+        const left = Math.max(8, Math.min(
+          arena.clientWidth - target.offsetWidth - 8,
+          slot.x - target.offsetWidth / 2 + jitterX
+        ));
+        const top = Math.max(58, Math.min(
+          arena.clientHeight - target.offsetHeight - 12,
+          slot.y - target.offsetHeight / 2 + jitterY
+        ));
+        target.style.left = `${left}px`;
+        target.style.top = `${top}px`;
+      });
+    }
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === "suspended") audioCtx.resume();
+    }
+
+    function tone(freq, duration, type = "square", volume = .07, delay = 0) {
+      if (muted || !audioCtx) return;
+      const start = audioCtx.currentTime + delay;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(volume, start);
+      gain.gain.exponentialRampToValueAtTime(.001, start + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(start);
+      osc.stop(start + duration);
+    }
+
+    function laserSound() {
+      tone(950, .12, "sawtooth", .08);
+      tone(180, .15, "square", .05, .05);
+    }
+
+    function successSound() {
+      tone(480, .08);
+      tone(720, .10, "square", .06, .08);
+      tone(980, .14, "square", .06, .16);
+    }
+
+    function wrongSound() {
+      tone(170, .2, "sawtooth", .1);
+      tone(90, .3, "square", .07, .1);
+    }
+
+    function resizeCanvas() {
+      const rect = arena.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = rect.width * ratio;
+      canvas.height = rect.height * ratio;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, arena.clientWidth, arena.clientHeight);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += .15;
+        p.life -= .025;
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.white ? "#fff" : getComputedStyle(game).getPropertyValue("--neon");
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      });
+      ctx.globalAlpha = 1;
+      particles = particles.filter(p => p.life > 0);
+      requestAnimationFrame(animateParticles);
+    }
+
+    function explode(x, y) {
+      for (const className of ["blast-core","blast-ring"]) {
+        const element = document.createElement("div");
+        element.className = className;
+        element.style.left = `${x}px`;
+        element.style.top = `${y}px`;
+        arena.appendChild(element);
+        setTimeout(() => element.remove(), 600);
+      }
+
+      const word = document.createElement("div");
+      word.className = "boom";
+      word.textContent = combo >= 5 ? "MEGA BLAST!" : combo >= 3 ? "COMBO!" : "POP!";
+      word.style.left = `${x}px`;
+      word.style.top = `${y}px`;
+      arena.appendChild(word);
+      setTimeout(() => word.remove(), 750);
+
+      for (let i = 0; i < 58; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 8;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: 2 + Math.random() * 5,
+          life: 1,
+          white: Math.random() > .72
+        });
+      }
+
+      game.classList.remove("shake");
+      el("flash").classList.remove("flash");
+      void game.offsetWidth;
+      game.classList.add("shake");
+      el("flash").classList.add("flash");
+      setTimeout(() => {
+        game.classList.remove("shake");
+        el("flash").classList.remove("flash");
+      }, 400);
+    }
+
+    function updateHud() {
+      el("score").textContent = String(score).padStart(6, "0");
+      el("questionNumber").textContent = `${Math.min(answered + 1, runSize)} / ${runSize}`;
+      const accuracy = answered ? Math.round(correct / answered * 100) : 0;
+      el("accuracy").textContent = `${accuracy}%`;
+      el("combo").textContent = `X${combo}`;
+      el("lives").textContent = lives > 0 ? "♥".repeat(lives) : "---";
+      el("missedCount").textContent = wrongAnswers.length;
+    }
+
+    function showQuestion() {
+      if (!playing) return;
+
+      if (!deck.length) {
+        finishGame();
+        return;
+      }
+
+      targetLayer.innerHTML = "";
+      el("message").textContent = "";
+      currentQuestion = deck.shift();
+      el("prompt").textContent = currentQuestion.prompt;
+
+      for (const choice of getChoices(currentQuestion)) {
+        const target = document.createElement("button");
+        target.type = "button";
+        target.className = "capsule";
+        target.dataset.value = choice;
+
+        const span = document.createElement("span");
+        span.textContent = choice;
+        target.appendChild(span);
+
+        targetLayer.appendChild(target);
+        fitText(target, choice);
+        target.addEventListener("click", () => answerQuestion(target));
+      }
+
+      requestAnimationFrame(positionTargets);
+      updateHud();
+    }
+
+    function answerQuestion(target) {
+      if (!playing || target.disabled) return;
+      initAudio();
+      laserSound();
+
+      const x = target.offsetLeft + target.offsetWidth / 2;
+      const y = target.offsetTop + target.offsetHeight / 2;
+      const isCorrect = target.dataset.value === currentQuestion.answer;
+      const style = el("playStyle").value;
+
+      targetLayer.querySelectorAll(".capsule").forEach(button => button.disabled = true);
+      answered += 1;
+
+      if (isCorrect) {
+        correct += 1;
+        const points = 100 * combo;
+        score += points;
+        combo = Math.min(combo + 1, 9);
+        target.classList.add("hit");
+        explode(x, y);
+        successSound();
+        el("message").textContent = `DIRECT HIT +${points}`;
+      } else {
+        combo = 1;
+        wrongAnswers.push({ rank: currentQuestion.rank, mode: currentQuestion.mode });
+        target.classList.add("wrong");
+        wrongSound();
+        el("message").textContent = `MISS — ${currentQuestion.answer}`;
+
+        if (style === "arcade") {
+          lives -= 1;
+        }
+
+        const correctTarget = [...targetLayer.querySelectorAll(".capsule")]
+          .find(button => button.dataset.value === currentQuestion.answer);
+        if (correctTarget) {
+          correctTarget.style.outline = "4px solid var(--success)";
+          correctTarget.style.transform = "scale(1.06)";
+        }
+      }
+
+      updateHud();
+
+      if (style === "arcade" && lives <= 0) {
+        setTimeout(finishGame, 1000);
+      } else {
+        setTimeout(showQuestion, isCorrect ? 600 : 1300);
+      }
+    }
+
+    function startMovement() {
+      clearInterval(movementTimer);
+      if (el("playStyle").value !== "arcade") return;
+      movementTimer = setInterval(() => {
+        if (playing) positionTargets();
+      }, 2600);
+    }
+
+    function startGame() {
+      try {
+        initAudio();
+        buildDeck();
+      } catch (error) {
+        alert(error.message);
+        return;
+      }
+
+      clearInterval(movementTimer);
+      score = 0;
+      combo = 1;
+      lives = 3;
+      answered = 0;
+      correct = 0;
+      wrongAnswers = [];
+      playing = true;
+
+      el("overlay").classList.add("hidden");
+      tone(330,.08);
+      tone(520,.10,"square",.07,.1);
+      tone(820,.15,"square",.07,.22);
+      startMovement();
+      showQuestion();
+    }
+
+    function finishGame() {
+      playing = false;
+      clearInterval(movementTimer);
+      targetLayer.innerHTML = "";
+      el("prompt").textContent = "RUN COMPLETE";
+
+      const previousMissed = getSavedMissed();
+      saveMissed([...previousMissed, ...wrongAnswers]);
+
+      const accuracy = answered ? Math.round(correct / answered * 100) : 0;
+      const missedText = wrongAnswers.length
+        ? wrongAnswers.map(item => {
+            const drug = drugs.find(d => d.rank === item.rank);
+            return drug ? `#${drug.rank} ${drug.generic} — ${item.mode}` : "";
+          }).filter(Boolean).join("<br>")
+        : "Perfect run — no missed questions.";
+
+      el("overlayCard").innerHTML = `
+        <div class="ready">${lives <= 0 ? "GAME OVER" : "RUN COMPLETE"}</div>
+        <div class="results">
+          <div class="result-box"><small>SCORE</small><strong>${String(score).padStart(6,"0")}</strong></div>
+          <div class="result-box"><small>ACCURACY</small><strong>${accuracy}%</strong></div>
+          <div class="result-box"><small>CORRECT</small><strong>${correct}</strong></div>
+          <div class="result-box"><small>MISSED</small><strong>${wrongAnswers.length}</strong></div>
+        </div>
+        <div class="review-list">${missedText}</div>
+        <button class="start-btn" id="playAgain" type="button">PLAY AGAIN</button>
+      `;
+      el("overlay").classList.remove("hidden");
+      el("playAgain").addEventListener("click", startGame);
+    }
+
+    el("startButton").addEventListener("click", startGame);
+    el("overlayStart").addEventListener("click", startGame);
+
+    el("soundButton").addEventListener("click", () => {
+      initAudio();
+      muted = !muted;
+      el("soundButton").textContent = muted ? "🔇 SOUND OFF" : "🔊 SOUND ON";
+      if (!muted) tone(700,.12);
+    });
+
+    el("resetProgressButton").addEventListener("click", () => {
+      localStorage.removeItem("drugBlasterMissed");
+      alert("Missed-question review list cleared.");
+    });
+
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      positionTargets();
+    });
+
+    el("bankStatus").textContent =
+      `${drugs.length} sample drugs · ${drugs.length * 4} possible core questions loaded`;
+
+    resizeCanvas();
+    animateParticles();
+    updateHud();
+  </script>
+</body>
+</html>
