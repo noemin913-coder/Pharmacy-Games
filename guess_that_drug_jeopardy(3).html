@@ -316,7 +316,7 @@
     </section>
 
     <div class="instructions">
-      <strong>How to play:</strong> Select a point value, read the clue, and type the drug name. Use the Letter Hint button when needed. Correct answers add points; incorrect answers subtract points.
+      <strong>How to play:</strong> Select a point value, read the clue, and type the drug name. Use the Letter Hint button when needed. Exact answers earn full points. Recognizable spelling mistakes earn half points with a spelling reminder; incorrect answers subtract points. Each new game draws a different set of clues.
     </div>
 
     <div class="board-wrap">
@@ -365,158 +365,85 @@
   </div>
 
   <script>
-    const categories = [
+    const questionPools = [
       {
         name: "Easy Identification",
         clues: [
-          {
-            value: 100,
-            clue: "This common OTC medication treats mild pain and fever. Unlike NSAIDs, it does not reduce inflammation.",
-            answer: ["acetaminophen", "tylenol"]
-          },
-          {
-            value: 200,
-            clue: "This OTC NSAID is used for pain, fever, and inflammation. Common brand names include Advil and Motrin.",
-            answer: ["ibuprofen", "advil", "motrin"]
-          },
-          {
-            value: 300,
-            clue: "This first-generation antihistamine may cause significant drowsiness and is sold under the brand name Benadryl.",
-            answer: ["diphenhydramine", "benadryl"]
-          },
-          {
-            value: 400,
-            clue: "This second-generation antihistamine is taken once daily for allergies and is commonly sold as Claritin.",
-            answer: ["loratadine", "claritin"]
-          },
-          {
-            value: 500,
-            clue: "This thyroid replacement medication should usually be taken on an empty stomach and separated from calcium or iron.",
-            answer: ["levothyroxine", "synthroid"]
-          }
+          { clue: "This common OTC medication treats mild pain and fever. Unlike NSAIDs, it does not reduce inflammation.", answer: ["acetaminophen", "tylenol"] },
+          { clue: "This OTC NSAID is used for pain, fever, and inflammation. Common brand names include Advil and Motrin.", answer: ["ibuprofen", "advil", "motrin"] },
+          { clue: "This first-generation antihistamine may cause significant drowsiness and is sold under the brand name Benadryl.", answer: ["diphenhydramine", "benadryl"] },
+          { clue: "This second-generation antihistamine is taken once daily for allergies and is commonly sold as Claritin.", answer: ["loratadine", "claritin"] },
+          { clue: "This thyroid replacement medication should usually be taken on an empty stomach and separated from calcium or iron.", answer: ["levothyroxine", "synthroid"] },
+          { clue: "This OTC antihistamine is commonly sold as Zyrtec and may cause some drowsiness.", answer: ["cetirizine", "zyrtec"] },
+          { clue: "This common antibiotic is a penicillin and is often used for ear, throat, or dental infections.", answer: ["amoxicillin", "amoxil"] },
+          { clue: "This topical antifungal is commonly used for athlete's foot and is sold under the brand Lotrimin.", answer: ["clotrimazole", "lotrimin"] },
+          { clue: "This OTC antidiarrheal slows bowel movement and is sold under the brand Imodium.", answer: ["loperamide", "imodium"] },
+          { clue: "This sleep aid and melatonin-receptor supplement is naturally produced by the body and is widely sold OTC.", answer: ["melatonin"] }
         ]
       },
       {
         name: "What Is It Used For?",
         clues: [
-          {
-            value: 100,
-            clue: "This medication is commonly used as first-line treatment for type 2 diabetes and may cause stomach upset when first started.",
-            answer: ["metformin", "glucophage"]
-          },
-          {
-            value: 200,
-            clue: "This medication reduces stomach acid and is commonly used for GERD. It belongs to the proton pump inhibitor class.",
-            answer: ["omeprazole", "prilosec"]
-          },
-          {
-            value: 300,
-            clue: "This medication is commonly prescribed for high blood pressure and belongs to the calcium channel blocker class. Ankle swelling may occur.",
-            answer: ["amlodipine", "norvasc"]
-          },
-          {
-            value: 400,
-            clue: "This medication lowers LDL cholesterol and should be used with lifestyle changes. Muscle pain should be reported.",
-            answer: ["atorvastatin", "lipitor"]
-          },
-          {
-            value: 500,
-            clue: "This antiplatelet medication helps prevent blood clots after certain heart attacks, strokes, or coronary stent procedures.",
-            answer: ["clopidogrel", "plavix"]
-          }
+          { clue: "This medication is commonly used as first-line treatment for type 2 diabetes and may cause stomach upset when first started.", answer: ["metformin", "glucophage"] },
+          { clue: "This medication reduces stomach acid and is commonly used for GERD. It belongs to the proton pump inhibitor class.", answer: ["omeprazole", "prilosec"] },
+          { clue: "This medication is commonly prescribed for high blood pressure and belongs to the calcium channel blocker class. Ankle swelling may occur.", answer: ["amlodipine", "norvasc"] },
+          { clue: "This medication lowers LDL cholesterol and should be used with lifestyle changes. Muscle pain should be reported.", answer: ["atorvastatin", "lipitor"] },
+          { clue: "This antiplatelet medication helps prevent blood clots after certain heart attacks, strokes, or coronary stent procedures.", answer: ["clopidogrel", "plavix"] },
+          { clue: "This medication is used for nausea and vomiting and is commonly sold under the brand Zofran.", answer: ["ondansetron", "zofran"] },
+          { clue: "This medication treats gout attacks and may also be used to help prevent recurrent gout flares.", answer: ["colchicine", "colcrys"] },
+          { clue: "This medication is used to treat an underactive thyroid by replacing thyroid hormone.", answer: ["levothyroxine", "synthroid"] },
+          { clue: "This medication is commonly used for urinary tract infections and is sold under the brand Macrobid.", answer: ["nitrofurantoin", "macrobid"] },
+          { clue: "This medication treats nerve pain and seizures and is commonly sold under the brand Neurontin.", answer: ["gabapentin", "neurontin"] }
         ]
       },
       {
         name: "Drug Class Clues",
         clues: [
-          {
-            value: 100,
-            clue: "I am a selective serotonin reuptake inhibitor used for depression and anxiety. My brand name is Zoloft.",
-            answer: ["sertraline", "zoloft"]
-          },
-          {
-            value: 200,
-            clue: "I am an ACE inhibitor. A persistent dry cough is one of my well-known side effects.",
-            answer: ["lisinopril", "prinivil", "zestril"]
-          },
-          {
-            value: 300,
-            clue: "I am a beta blocker commonly used for blood pressure and heart-rate control. I may slow the pulse.",
-            answer: ["metoprolol", "lopressor", "toprol xl", "toprol-xl"]
-          },
-          {
-            value: 400,
-            clue: "I am an angiotensin II receptor blocker often selected when a patient cannot tolerate an ACE inhibitor cough.",
-            answer: ["losartan", "cozaar"]
-          },
-          {
-            value: 500,
-            clue: "I am a loop diuretic used to remove excess fluid. Patients may need potassium and kidney-function monitoring.",
-            answer: ["furosemide", "lasix"]
-          }
+          { clue: "I am a selective serotonin reuptake inhibitor used for depression and anxiety. My brand name is Zoloft.", answer: ["sertraline", "zoloft"] },
+          { clue: "I am an ACE inhibitor. A persistent dry cough is one of my well-known side effects.", answer: ["lisinopril", "prinivil", "zestril"] },
+          { clue: "I am a beta blocker commonly used for blood pressure and heart-rate control. I may slow the pulse.", answer: ["metoprolol", "lopressor", "toprol xl", "toprol-xl"] },
+          { clue: "I am an angiotensin II receptor blocker often selected when a patient cannot tolerate an ACE inhibitor cough.", answer: ["losartan", "cozaar"] },
+          { clue: "I am a loop diuretic used to remove excess fluid. Patients may need potassium and kidney-function monitoring.", answer: ["furosemide", "lasix"] },
+          { clue: "I am a benzodiazepine used for anxiety and panic symptoms. I can cause sedation and dependence.", answer: ["alprazolam", "xanax"] },
+          { clue: "I am a thiazide diuretic commonly used for high blood pressure.", answer: ["hydrochlorothiazide", "hctz", "microzide"] },
+          { clue: "I am an inhaled corticosteroid used for long-term asthma control, not immediate rescue.", answer: ["fluticasone", "flovent"] },
+          { clue: "I am a direct oral anticoagulant and a factor Xa inhibitor sold under the brand Eliquis.", answer: ["apixaban", "eliquis"] },
+          { clue: "I am an atypical antipsychotic used for conditions such as schizophrenia and bipolar disorder. My brand is Seroquel.", answer: ["quetiapine", "seroquel"] }
         ]
       },
       {
         name: "Counseling Corner",
         clues: [
-          {
-            value: 100,
-            clue: "Avoid taking more than the recommended daily amount of this pain reliever because excessive doses can damage the liver.",
-            answer: ["acetaminophen", "tylenol"]
-          },
-          {
-            value: 200,
-            clue: "Take this thyroid medication consistently in the morning on an empty stomach, usually 30 to 60 minutes before breakfast.",
-            answer: ["levothyroxine", "synthroid"]
-          },
-          {
-            value: 300,
-            clue: "Patients taking this cholesterol medication should report unexplained muscle pain, weakness, or dark-colored urine.",
-            answer: ["atorvastatin", "lipitor"]
-          },
-          {
-            value: 400,
-            clue: "This medication may increase bleeding or bruising. Patients should tell healthcare providers they take it before procedures.",
-            answer: ["clopidogrel", "plavix"]
-          },
-          {
-            value: 500,
-            clue: "This diabetes medication is often taken with food to reduce stomach upset. Kidney function should be reviewed.",
-            answer: ["metformin", "glucophage"]
-          }
+          { clue: "Avoid taking more than the recommended daily amount of this pain reliever because excessive doses can damage the liver.", answer: ["acetaminophen", "tylenol"] },
+          { clue: "Take this thyroid medication consistently in the morning on an empty stomach, usually 30 to 60 minutes before breakfast.", answer: ["levothyroxine", "synthroid"] },
+          { clue: "Patients taking this cholesterol medication should report unexplained muscle pain, weakness, or dark-colored urine.", answer: ["atorvastatin", "lipitor"] },
+          { clue: "This medication may increase bleeding or bruising. Patients should tell healthcare providers they take it before procedures.", answer: ["clopidogrel", "plavix"] },
+          { clue: "This diabetes medication is often taken with food to reduce stomach upset. Kidney function should be reviewed.", answer: ["metformin", "glucophage"] },
+          { clue: "Rinse the mouth after using this inhaled corticosteroid to reduce the chance of oral thrush.", answer: ["fluticasone", "flovent"] },
+          { clue: "Avoid suddenly stopping this beta blocker unless instructed, because heart rate and blood pressure may rebound.", answer: ["metoprolol", "lopressor", "toprol xl", "toprol-xl"] },
+          { clue: "This antibiotic can make the skin more sensitive to sunlight, so sun protection is important.", answer: ["doxycycline", "vibramycin"] },
+          { clue: "Take this bisphosphonate with plain water and remain upright for at least 30 minutes afterward.", answer: ["alendronate", "fosamax"] },
+          { clue: "This anticoagulant has important food and drug interactions and requires consistent vitamin K intake.", answer: ["warfarin", "coumadin", "jantoven"] }
         ]
       },
       {
         name: "Challenge Round",
         clues: [
-          {
-            value: 100,
-            clue: "I reduce acid by blocking histamine-2 receptors in the stomach. My common brand name is Pepcid.",
-            answer: ["famotidine", "pepcid"]
-          },
-          {
-            value: 200,
-            clue: "I am an osmotic laxative powder commonly mixed with liquid. My brand name is MiraLAX.",
-            answer: ["polyethylene glycol", "peg 3350", "miralax"]
-          },
-          {
-            value: 300,
-            clue: "I am a rescue inhaler used for sudden wheezing or shortness of breath. I am a short-acting beta-2 agonist.",
-            answer: ["albuterol", "ventolin", "proair", "proventil"]
-          },
-          {
-            value: 400,
-            clue: "I am an anticoagulant that requires regular INR blood tests and has many food and drug interactions.",
-            answer: ["warfarin", "coumadin", "jantoven"]
-          },
-          {
-            value: 500,
-            clue: "I am an antibiotic in the macrolide class, often supplied as a five-day dose pack.",
-            answer: ["azithromycin", "zithromax", "z pak", "z-pak"]
-          }
+          { clue: "I reduce acid by blocking histamine-2 receptors in the stomach. My common brand name is Pepcid.", answer: ["famotidine", "pepcid"] },
+          { clue: "I am an osmotic laxative powder commonly mixed with liquid. My brand name is MiraLAX.", answer: ["polyethylene glycol", "peg 3350", "miralax"] },
+          { clue: "I am a rescue inhaler used for sudden wheezing or shortness of breath. I am a short-acting beta-2 agonist.", answer: ["albuterol", "ventolin", "proair", "proventil"] },
+          { clue: "I am an anticoagulant that requires regular INR blood tests and has many food and drug interactions.", answer: ["warfarin", "coumadin", "jantoven"] },
+          { clue: "I am an antibiotic in the macrolide class, often supplied as a five-day dose pack.", answer: ["azithromycin", "zithromax", "z pak", "z-pak"] },
+          { clue: "I am a leukotriene receptor antagonist used for asthma and allergies. My brand name is Singulair.", answer: ["montelukast", "singulair"] },
+          { clue: "I am a urate-lowering medicine used to help prevent gout attacks. My brand name is Zyloprim.", answer: ["allopurinol", "zyloprim"] },
+          { clue: "I am a potassium-sparing diuretic that can raise potassium levels. My brand name is Aldactone.", answer: ["spironolactone", "aldactone"] },
+          { clue: "I am a proton pump inhibitor sold under the brand Protonix.", answer: ["pantoprazole", "protonix"] },
+          { clue: "I am an antiviral commonly used for herpes infections and shingles. My brand name is Valtrex.", answer: ["valacyclovir", "valtrex"] }
         ]
       }
     ];
+
+    let categories = [];
 
     const board = document.getElementById("board");
     const scoreDisplay = document.getElementById("score");
@@ -534,6 +461,7 @@
 
     let score = 0;
     let correctCount = 0;
+    let partialCount = 0;
     let cluesLeft = 25;
     let currentClue = null;
     let currentButton = null;
@@ -550,6 +478,71 @@
         .replace(/^the\s+answer\s+is\s+/, "")
         .replace(/[^a-z0-9 ]/g, "")
         .replace(/\s+/g, " ");
+    }
+
+    function levenshteinDistance(a, b) {
+      const rows = a.length + 1;
+      const cols = b.length + 1;
+      const matrix = Array.from({ length: rows }, () => Array(cols).fill(0));
+
+      for (let i = 0; i < rows; i++) matrix[i][0] = i;
+      for (let j = 0; j < cols; j++) matrix[0][j] = j;
+
+      for (let i = 1; i < rows; i++) {
+        for (let j = 1; j < cols; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j - 1] + cost
+          );
+        }
+      }
+
+      return matrix[a.length][b.length];
+    }
+
+    function answerMatch(guess, acceptedAnswers) {
+      let best = null;
+
+      acceptedAnswers.forEach(answer => {
+        const normalized = normalizeAnswer(answer);
+        const distance = levenshteinDistance(guess, normalized);
+        const longest = Math.max(guess.length, normalized.length);
+        const similarity = longest === 0 ? 1 : 1 - distance / longest;
+
+        if (!best || similarity > best.similarity) {
+          best = { answer: normalized, distance, similarity };
+        }
+      });
+
+      if (best.distance === 0) return { type: "exact", ...best };
+
+      const length = best.answer.length;
+      const allowedDistance = length <= 6 ? 1 : length <= 11 ? 2 : 3;
+      const closeEnough = best.distance <= allowedDistance && best.similarity >= 0.75;
+
+      return { type: closeEnough ? "close" : "wrong", ...best };
+    }
+
+    function shuffle(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function selectGameQuestions() {
+      const values = [100, 200, 300, 400, 500];
+      categories = questionPools.map(pool => ({
+        name: pool.name,
+        clues: shuffle(pool.clues).slice(0, 5).map((clue, index) => ({
+          ...clue,
+          value: values[index]
+        }))
+      }));
     }
 
     function buildLetterPattern(answer, level) {
@@ -647,17 +640,23 @@
         return;
       }
 
-      const isCorrect = currentClue.answer.some(answer => normalizeAnswer(answer) === guess);
+      const match = answerMatch(guess, currentClue.answer);
       answered = true;
       answerInput.disabled = true;
       currentButton.disabled = true;
       currentButton.textContent = "—";
       cluesLeft--;
 
-      if (isCorrect) {
+      if (match.type === "exact") {
         score += currentClue.value;
         correctCount++;
         feedback.textContent = `Correct! ${currentClue.answer[0]} +${currentClue.value} points`;
+        feedback.className = "feedback correct";
+      } else if (match.type === "close") {
+        const partialPoints = Math.round((currentClue.value * 0.5) / 10) * 10;
+        score += partialPoints;
+        partialCount++;
+        feedback.textContent = `Close enough for partial credit! +${partialPoints} points. Preferred spelling: ${currentClue.answer[0]}.`;
         feedback.className = "feedback correct";
       } else {
         score -= currentClue.value;
@@ -692,7 +691,7 @@
 
     function checkGameComplete() {
       if (cluesLeft === 0) {
-        finalMessage.textContent = `Final score: ${score}. You answered ${correctCount} out of 25 clues correctly.`;
+        finalMessage.textContent = `Final score: ${score}. Exact answers: ${correctCount}. Near-miss answers with partial credit: ${partialCount}.`;
         finalPanel.style.display = "block";
       }
     }
@@ -700,12 +699,14 @@
     function newGame() {
       score = 0;
       correctCount = 0;
+      partialCount = 0;
       cluesLeft = 25;
       currentClue = null;
       currentButton = null;
       answered = false;
       finalPanel.style.display = "none";
       closeModal();
+      selectGameQuestions();
       updateStats();
       buildBoard();
     }
@@ -732,6 +733,7 @@
       if (event.target === modalBackdrop) closeModal();
     });
 
+    selectGameQuestions();
     buildBoard();
     updateStats();
   </script>
